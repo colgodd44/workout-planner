@@ -5,6 +5,19 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDGFmqFLMiIypfHVsyiIlvPC_FXDhRayhY",
+  authDomain: "workout-planner-b74e7.firebaseapp.com",
+  projectId: "workout-planner-b74e7",
+  storageBucket: "workout-planner-b74e7.firebasestorage.app",
+  messagingSenderId: "266499388365",
+  appId: "1:266499388365:web:cc42dc8a071dbad516ca84"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 interface UserProfile {
   name: string;
   age: number;
@@ -61,20 +74,6 @@ interface ProgressPhoto {
   notes: string;
   category: 'front' | 'side' | 'back' | 'other';
 }
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDGFmqFLMiIypfHVsyiIlvPC_FXDhRayhY",
-  authDomain: "workout-planner-b74e7.firebaseapp.com",
-  projectId: "workout-planner-b74e7",
-  storageBucket: "workout-planner-b74e7.firebasestorage.app",
-  messagingSenderId: "266499388365",
-  appId: "1:266499388365:web:cc42dc8a071dbad516ca84",
-  measurementId: "G-RQ037ELNPQ"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 const BODY_TYPES = [
   { id: 'ectomorph', icon: '🔵', name: 'Ectomorph', desc: 'Thin, hard to gain weight' },
@@ -1589,17 +1588,6 @@ const EXERCISE_GUIDE: Record<string, { name: string; muscle: string; steps: stri
   },
 };
 
-function TestModal({ show, onClose }: { show: boolean; onClose: () => void }) {
-  console.log('TestModal rendering, show:', show);
-  return (
-    <div style={{ position: 'fixed', top: 100, left: 10, background: 'blue', color: 'white', padding: 20, zIndex: 9999 }}>
-      <h3>TestModal</h3>
-      <p>show = {String(show)}</p>
-      <button onClick={onClose}>Close</button>
-    </div>
-  );
-}
-
 export default function WorkoutPlanner() {
   const [activeTab, setActiveTab] = useState('profile');
   const [profile, setProfile] = useState<UserProfile>({
@@ -1639,10 +1627,6 @@ export default function WorkoutPlanner() {
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
-
-  useEffect(() => {
-    console.log('showAuthModal changed to:', showAuthModal);
-  }, [showAuthModal]);
 
   const handleSignUp = async () => {
     try {
@@ -1689,10 +1673,7 @@ export default function WorkoutPlanner() {
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     
-    console.log('Setting up auth listener...');
-    
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log('Auth state changed:', firebaseUser ? 'logged in' : 'not logged in');
       setUser(firebaseUser);
       if (firebaseUser) {
         const loadUserData = async () => {
@@ -1720,7 +1701,6 @@ export default function WorkoutPlanner() {
     });
     
     timeout = setTimeout(() => {
-      console.log('Auth timeout reached, hiding loading');
       setAuthLoading(false);
     }, 5000);
     
@@ -1768,25 +1748,21 @@ export default function WorkoutPlanner() {
     const newProfile = { ...profile, ...updates };
     setProfile(newProfile);
     localStorage.setItem('workout-profile', JSON.stringify(newProfile));
-    if (user) saveAllData(user.uid);
   };
 
   const saveCompletedDays = (days: number[]) => {
     setCompletedDays(days);
     localStorage.setItem('workout-completed', JSON.stringify(days));
-    if (user) saveAllData(user.uid);
   };
 
   const saveExerciseLogs = (logs: WorkoutLog[]) => {
     setExerciseLogs(logs);
     localStorage.setItem('workout-logs', JSON.stringify(logs));
-    if (user) saveAllData(user.uid);
   };
 
   const saveProgressPhotos = (photos: ProgressPhoto[]) => {
     setProgressPhotos(photos);
     localStorage.setItem('progress-photos', JSON.stringify(photos));
-    if (user) saveAllData(user.uid);
   };
 
   const calculateWeekNumber = (date: string) => {
@@ -2022,30 +1998,20 @@ export default function WorkoutPlanner() {
         )}
       </div>
 
-      <div id="debug" style={{ position: 'fixed', top: 60, left: 10, zIndex: 9999, background: 'yellow', color: 'black', padding: 10, fontSize: 12 }}>
-        DEBUG: showAuthModal = {String(showAuthModal)}
-      </div>
-
       {authLoading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20, padding: 40 }}>
           <div className="analyze-spinner" style={{ width: 60, height: 60 }} />
           <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
       ) : !user ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20, padding: 40, textAlign: 'center' }} onClick={() => console.log('Welcome screen clicked!')}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20, padding: 40, textAlign: 'center' }}>
           <div style={{ fontSize: 64 }}>🔐</div>
           <h2 style={{ fontSize: 24, marginBottom: 8 }}>Welcome to FitAI</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: 20, maxWidth: 300 }}>
             Sign in to save your workout data securely in the cloud and access it from any device.
           </p>
           <button 
-            onClick={() => {
-              console.log('Get Started clicked!');
-              console.log('Before setShowAuthModal');
-              setShowAuthModal(true);
-              console.log('After setShowAuthModal, showAuthModal should be:', true);
-              setAuthMode('signup');
-            }}
+            onClick={() => { setShowAuthModal(true); setAuthMode('signup'); }}
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--pink))',
               border: 'none',
@@ -2062,7 +2028,7 @@ export default function WorkoutPlanner() {
           <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
             Already have an account?{' '}
             <span 
-              onClick={() => { console.log('Sign In clicked!'); setShowAuthModal(true); setAuthMode('signin'); }}
+              onClick={() => { setShowAuthModal(true); setAuthMode('signin'); }}
               style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
             >
               Sign In
@@ -2070,7 +2036,7 @@ export default function WorkoutPlanner() {
           </p>
         </div>
       ) : (
-        <>
+      <>
       <div className="nav-tabs">
         {['Profile', 'Workouts', 'Meals', 'Progress'].map(tab => (
           <button
@@ -2967,8 +2933,230 @@ export default function WorkoutPlanner() {
         </div>
       )}
 
-      <TestModal show={showAuthModal} onClose={() => setShowAuthModal(false)} />
-        </>
+      {showAuthModal && (
+        <div className="analyze-modal" onClick={() => setShowAuthModal(false)}>
+          <div className="analyze-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+                {authMode === 'signup' ? 'Create Account' : 'Welcome Back'}
+              </h3>
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                style={{ 
+                  background: 'var(--bg-card)', 
+                  border: 'none', 
+                  color: 'white', 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: '50%', 
+                  cursor: 'pointer',
+                  fontSize: 18
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>
+              {authMode === 'signup' 
+                ? 'Create an account to sync your data across devices'
+                : 'Sign in to access your workout data'}
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Email</label>
+              <input
+                type="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="you@example.com"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Password</label>
+              <input
+                type="password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14
+                }}
+              />
+            </div>
+
+            {authError && (
+              <div style={{ 
+                background: 'rgba(239, 68, 68, 0.2)', 
+                padding: 12, 
+                borderRadius: 8, 
+                marginBottom: 16,
+                fontSize: 13,
+                color: '#ef4444'
+              }}>
+                {authError}
+              </div>
+            )}
+
+            <button
+              onClick={authMode === 'signup' ? handleSignUp : handleSignIn}
+              style={{
+                width: '100%',
+                padding: 14,
+                background: 'linear-gradient(135deg, var(--accent), var(--pink))',
+                border: 'none',
+                borderRadius: 12,
+                color: 'white',
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                marginBottom: 12
+              }}
+            >
+              {authMode === 'signup' ? 'Create Account' : 'Sign In'}
+            </button>
+
+            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+              {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <span 
+                onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
+                style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                {authMode === 'signup' ? 'Sign In' : 'Sign Up'}
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+      </>
+      )}
+
+      {showAuthModal && (
+        <div className="analyze-modal" onClick={() => setShowAuthModal(false)}>
+          <div className="analyze-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+                {authMode === 'signup' ? 'Create Account' : 'Welcome Back'}
+              </h3>
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                style={{ 
+                  background: 'var(--bg-card)', 
+                  border: 'none', 
+                  color: 'white', 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: '50%', 
+                  cursor: 'pointer',
+                  fontSize: 18
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>
+              {authMode === 'signup' 
+                ? 'Create an account to sync your data across devices'
+                : 'Sign in to access your workout data'}
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Email</label>
+              <input
+                type="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="you@example.com"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Password</label>
+              <input
+                type="password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14
+                }}
+              />
+            </div>
+
+            {authError && (
+              <div style={{ 
+                background: 'rgba(239, 68, 68, 0.2)', 
+                padding: 12, 
+                borderRadius: 8, 
+                marginBottom: 16,
+                fontSize: 13,
+                color: '#ef4444'
+              }}>
+                {authError}
+              </div>
+            )}
+
+            <button
+              onClick={authMode === 'signup' ? handleSignUp : handleSignIn}
+              style={{
+                width: '100%',
+                padding: 14,
+                background: 'linear-gradient(135deg, var(--accent), var(--pink))',
+                border: 'none',
+                borderRadius: 12,
+                color: 'white',
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                marginBottom: 12
+              }}
+            >
+              {authMode === 'signup' ? 'Create Account' : 'Sign In'}
+            </button>
+
+            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+              {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <span 
+                onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
+                style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                {authMode === 'signup' ? 'Sign In' : 'Sign Up'}
+              </span>
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
