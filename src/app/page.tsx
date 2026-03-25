@@ -1591,13 +1591,11 @@ const EXERCISE_GUIDE: Record<string, { name: string; muscle: string; steps: stri
 
 function TestModal({ show, onClose }: { show: boolean; onClose: () => void }) {
   console.log('TestModal rendering, show:', show);
-  if (!show) return null;
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'red', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'white', color: 'black', padding: 40, borderRadius: 20 }}>
-        <h2>MODAL TEST</h2>
-        <button onClick={onClose}>Close</button>
-      </div>
+    <div style={{ position: 'fixed', top: 100, left: 10, background: 'blue', color: 'white', padding: 20, zIndex: 9999 }}>
+      <h3>TestModal</h3>
+      <p>show = {String(show)}</p>
+      <button onClick={onClose}>Close</button>
     </div>
   );
 }
@@ -2022,6 +2020,10 @@ export default function WorkoutPlanner() {
             Sign In
           </button>
         )}
+      </div>
+
+      <div id="debug" style={{ position: 'fixed', top: 60, left: 10, zIndex: 9999, background: 'yellow', color: 'black', padding: 10, fontSize: 12 }}>
+        DEBUG: showAuthModal = {String(showAuthModal)}
       </div>
 
       {authLoading ? (
