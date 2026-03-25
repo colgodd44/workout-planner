@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 interface UserProfile {
   name: string;
@@ -58,6 +61,19 @@ interface ProgressPhoto {
   notes: string;
   category: 'front' | 'side' | 'back' | 'other';
 }
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDemo_ReplaceWithYourOwn",
+  authDomain: "fitai-workout.firebaseapp.com",
+  projectId: "fitai-workout",
+  storageBucket: "fitai-workout.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:0000000000000000000000"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 const BODY_TYPES = [
   { id: 'ectomorph', icon: '🔵', name: 'Ectomorph', desc: 'Thin, hard to gain weight' },
@@ -1604,6 +1620,79 @@ export default function WorkoutPlanner() {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  const handleSignUp = async () => {
+    try {
+      setAuthError('');
+      await createUserWithEmailAndPassword(auth, authEmail, authPassword);
+      setShowAuthModal(false);
+    } catch (err: any) {
+      setAuthError(err.message);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      setAuthError('');
+      await signInWithEmailAndPassword(auth, authEmail, authPassword);
+      setShowAuthModal(false);
+    } catch (err: any) {
+      setAuthError(err.message);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const saveAllData = async (uid: string) => {
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        profile,
+        completedDays,
+        exerciseLogs,
+        progressPhotos,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Error saving data:', err);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      if (firebaseUser) {
+        const docRef = doc(db, 'users', firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.profile) setProfile(data.profile);
+          if (data.completedDays) setCompletedDays(data.completedDays);
+          if (data.exerciseLogs) setExerciseLogs(data.exerciseLogs);
+          if (data.progressPhotos) setProgressPhotos(data.progressPhotos);
+          localStorage.setItem('workout-profile', JSON.stringify(data.profile || {}));
+          localStorage.setItem('workout-completed', JSON.stringify(data.completedDays || []));
+          localStorage.setItem('workout-logs', JSON.stringify(data.exerciseLogs || []));
+          localStorage.setItem('progress-photos', JSON.stringify(data.progressPhotos || []));
+        }
+      }
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     const saved = localStorage.getItem('workout-profile');
     if (saved) {
@@ -1642,21 +1731,25 @@ export default function WorkoutPlanner() {
     const newProfile = { ...profile, ...updates };
     setProfile(newProfile);
     localStorage.setItem('workout-profile', JSON.stringify(newProfile));
+    if (user) saveAllData(user.uid);
   };
 
   const saveCompletedDays = (days: number[]) => {
     setCompletedDays(days);
     localStorage.setItem('workout-completed', JSON.stringify(days));
+    if (user) saveAllData(user.uid);
   };
 
   const saveExerciseLogs = (logs: WorkoutLog[]) => {
     setExerciseLogs(logs);
     localStorage.setItem('workout-logs', JSON.stringify(logs));
+    if (user) saveAllData(user.uid);
   };
 
   const saveProgressPhotos = (photos: ProgressPhoto[]) => {
     setProgressPhotos(photos);
     localStorage.setItem('progress-photos', JSON.stringify(photos));
+    if (user) saveAllData(user.uid);
   };
 
   const calculateWeekNumber = (date: string) => {
@@ -1858,8 +1951,79 @@ export default function WorkoutPlanner() {
     <div className="app">
       <div className="header">
         <div className="logo">FitAI</div>
+        {user ? (
+          <button 
+            onClick={handleSignOut}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: 'none',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 13
+            }}
+          >
+            Sign Out
+          </button>
+        ) : (
+          <button 
+            onClick={() => { setShowAuthModal(true); setAuthMode('signin'); }}
+            style={{
+              background: 'var(--accent)',
+              border: 'none',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 600
+            }}
+          >
+            Sign In
+          </button>
+        )}
       </div>
 
+      {authLoading ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20, padding: 40 }}>
+          <div className="analyze-spinner" style={{ width: 60, height: 60 }} />
+          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        </div>
+      ) : !user ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20, padding: 40, textAlign: 'center' }}>
+          <div style={{ fontSize: 64 }}>🔐</div>
+          <h2 style={{ fontSize: 24, marginBottom: 8 }}>Welcome to FitAI</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 20, maxWidth: 300 }}>
+            Sign in to save your workout data securely in the cloud and access it from any device.
+          </p>
+          <button 
+            onClick={() => { setShowAuthModal(true); setAuthMode('signup'); }}
+            style={{
+              background: 'linear-gradient(135deg, var(--accent), var(--pink))',
+              border: 'none',
+              color: 'white',
+              padding: '16px 32px',
+              borderRadius: 12,
+              fontSize: 16,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Get Started - It's Free
+          </button>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+            Already have an account?{' '}
+            <span 
+              onClick={() => { setShowAuthModal(true); setAuthMode('signin'); }}
+              style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
+            >
+              Sign In
+            </span>
+          </p>
+        </div>
+      ) : (
+        <>
       <div className="nav-tabs">
         {['Profile', 'Workouts', 'Meals', 'Progress'].map(tab => (
           <button
@@ -2754,6 +2918,120 @@ export default function WorkoutPlanner() {
             </button>
           </div>
         </div>
+      )}
+
+      {showAuthModal && (
+        <div className="analyze-modal" onClick={() => setShowAuthModal(false)}>
+          <div className="analyze-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+                {authMode === 'signup' ? 'Create Account' : 'Welcome Back'}
+              </h3>
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                style={{ 
+                  background: 'var(--bg-card)', 
+                  border: 'none', 
+                  color: 'white', 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: '50%', 
+                  cursor: 'pointer',
+                  fontSize: 18
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>
+              {authMode === 'signup' 
+                ? 'Create an account to sync your data across devices'
+                : 'Sign in to access your workout data'}
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Email</label>
+              <input
+                type="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="you@example.com"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Password</label>
+              <input
+                type="password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14
+                }}
+              />
+            </div>
+
+            {authError && (
+              <div style={{ 
+                background: 'rgba(239, 68, 68, 0.2)', 
+                padding: 12, 
+                borderRadius: 8, 
+                marginBottom: 16,
+                fontSize: 13,
+                color: '#ef4444'
+              }}>
+                {authError}
+              </div>
+            )}
+
+            <button
+              onClick={authMode === 'signup' ? handleSignUp : handleSignIn}
+              style={{
+                width: '100%',
+                padding: 14,
+                background: 'linear-gradient(135deg, var(--accent), var(--pink))',
+                border: 'none',
+                borderRadius: 12,
+                color: 'white',
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: 'pointer',
+                marginBottom: 12
+              }}
+            >
+              {authMode === 'signup' ? 'Create Account' : 'Sign In'}
+            </button>
+
+            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+              {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <span 
+                onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
+                style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                {authMode === 'signup' ? 'Sign In' : 'Sign Up'}
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+        </>
       )}
     </div>
   );
