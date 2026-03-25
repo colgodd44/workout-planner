@@ -2942,7 +2942,7 @@ export default function WorkoutPlanner() {
         </div>
       )}
 
-      {showAuthModal && (
+      {showAuthModal && (() => { console.log('Modal rendering, showAuthModal:', showAuthModal); return (
         <div className="analyze-modal" onClick={() => setShowAuthModal(false)}>
           <div className="analyze-content" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -3052,7 +3052,7 @@ export default function WorkoutPlanner() {
             </p>
           </div>
         </div>
-      )}
+        );})()}
         </>
       )}
     </div>
