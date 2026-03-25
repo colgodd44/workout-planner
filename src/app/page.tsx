@@ -2024,7 +2024,13 @@ export default function WorkoutPlanner() {
             Sign in to save your workout data securely in the cloud and access it from any device.
           </p>
           <button 
-            onClick={() => { console.log('Get Started clicked!'); setShowAuthModal(true); setAuthMode('signup'); }}
+            onClick={() => {
+              console.log('Get Started clicked!');
+              console.log('Before setShowAuthModal');
+              setShowAuthModal(true);
+              console.log('After setShowAuthModal, showAuthModal should be:', true);
+              setAuthMode('signup');
+            }}
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--pink))',
               border: 'none',
