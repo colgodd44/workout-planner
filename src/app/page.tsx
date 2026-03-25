@@ -2013,7 +2013,7 @@ export default function WorkoutPlanner() {
           <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
       ) : !user ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20, padding: 40, textAlign: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20, padding: 40, textAlign: 'center' }} onClick={() => console.log('Welcome screen clicked!')}>
           <div style={{ fontSize: 64 }}>🔐</div>
           <h2 style={{ fontSize: 24, marginBottom: 8 }}>Welcome to FitAI</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: 20, maxWidth: 300 }}>
