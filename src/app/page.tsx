@@ -29,6 +29,27 @@ interface Meal {
   carbs: string;
 }
 
+interface ExerciseSet {
+  weight: string;
+  reps: string;
+  completed: boolean;
+}
+
+interface ExerciseLog {
+  name: string;
+  sets: ExerciseSet[];
+  notes: string;
+  completed: boolean;
+}
+
+interface WorkoutLog {
+  date: string;
+  dayIndex: number;
+  exercises: ExerciseLog[];
+  duration: number;
+  notes: string;
+}
+
 const BODY_TYPES = [
   { id: 'ectomorph', icon: '🔵', name: 'Ectomorph', desc: 'Thin, hard to gain weight' },
   { id: 'mesomorph', icon: '🟢', name: 'Mesomorph', desc: 'Athletic, muscular' },
@@ -1560,7 +1581,13 @@ export default function WorkoutPlanner() {
   const [showAnalyzeModal, setShowAnalyzeModal] = useState(false);
   const [showWorkouts, setShowWorkouts] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [exerciseLogs, setExerciseLogs] = useState<WorkoutLog[]>([]);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [activeDay, setActiveDay] = useState<number | null>(null);
+  const [workoutStartTime, setWorkoutStartTime] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('workout-profile');
@@ -1573,7 +1600,24 @@ export default function WorkoutPlanner() {
     if (savedDays) {
       setCompletedDays(JSON.parse(savedDays));
     }
+    const savedLogs = localStorage.getItem('workout-logs');
+    if (savedLogs) {
+      setExerciseLogs(JSON.parse(savedLogs));
+    }
   }, []);
+
+  useEffect(() => {
+    if (timerRunning) {
+      timerRef.current = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timerRunning]);
 
   const saveProfile = (updates: Partial<UserProfile>) => {
     const newProfile = { ...profile, ...updates };
@@ -1584,6 +1628,104 @@ export default function WorkoutPlanner() {
   const saveCompletedDays = (days: number[]) => {
     setCompletedDays(days);
     localStorage.setItem('workout-completed', JSON.stringify(days));
+  };
+
+  const saveExerciseLogs = (logs: WorkoutLog[]) => {
+    setExerciseLogs(logs);
+    localStorage.setItem('workout-logs', JSON.stringify(logs));
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const startWorkout = (dayIndex: number) => {
+    setActiveDay(dayIndex);
+    setTimerRunning(true);
+    setTimerSeconds(0);
+    setWorkoutStartTime(Date.now());
+  };
+
+  const endWorkout = () => {
+    setTimerRunning(false);
+    if (activeDay !== null && workoutStartTime) {
+      const duration = Math.floor((Date.now() - workoutStartTime) / 1000);
+      const today = new Date().toISOString().split('T')[0];
+      const existingLog = exerciseLogs.find(l => l.dayIndex === activeDay && l.date === today);
+      
+      if (!existingLog) {
+        const workouts = profile.goal ? WORKOUTS_BY_GOAL[profile.goal] : [];
+        const dayWorkout = workouts[activeDay];
+        const newLog: WorkoutLog = {
+          date: today,
+          dayIndex: activeDay,
+          exercises: dayWorkout.exercises.map(ex => ({
+            name: ex.name,
+            sets: Array.from({ length: parseInt(ex.sets.split('x')[0]) || 3 }, () => ({
+              weight: '',
+              reps: '',
+              completed: false
+            })),
+            notes: '',
+            completed: false
+          })),
+          duration: timerSeconds,
+          notes: ''
+        };
+        saveExerciseLogs([...exerciseLogs, newLog]);
+      }
+    }
+    setActiveDay(null);
+  };
+
+  const updateExerciseSet = (exerciseName: string, setIndex: number, field: 'weight' | 'reps', value: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    const updatedLogs = exerciseLogs.map(log => {
+      if (log.date === today && log.dayIndex === activeDay) {
+        return {
+          ...log,
+          exercises: log.exercises.map(ex => {
+            if (ex.name === exerciseName) {
+              const newSets = [...ex.sets];
+              newSets[setIndex] = { ...newSets[setIndex], [field]: value };
+              return { ...ex, sets: newSets };
+            }
+            return ex;
+          })
+        };
+      }
+      return log;
+    });
+    saveExerciseLogs(updatedLogs);
+  };
+
+  const toggleSetComplete = (exerciseName: string, setIndex: number) => {
+    const today = new Date().toISOString().split('T')[0];
+    const updatedLogs = exerciseLogs.map(log => {
+      if (log.date === today && log.dayIndex === activeDay) {
+        return {
+          ...log,
+          exercises: log.exercises.map(ex => {
+            if (ex.name === exerciseName) {
+              const newSets = [...ex.sets];
+              newSets[setIndex] = { ...newSets[setIndex], completed: !newSets[setIndex].completed };
+              const allCompleted = newSets.every(s => s.completed);
+              return { ...ex, sets: newSets, completed: allCompleted };
+            }
+            return ex;
+          })
+        };
+      }
+      return log;
+    });
+    saveExerciseLogs(updatedLogs);
+  };
+
+  const getTodayLog = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return exerciseLogs.find(l => l.date === today && l.dayIndex === activeDay);
   };
 
   const handlePhotoCapture = () => {
@@ -1836,41 +1978,169 @@ export default function WorkoutPlanner() {
                   {workouts.map((_, i) => (
                     <div
                       key={i}
-                      className={`weekday ${completedDays.includes(i) ? 'completed' : ''}`}
-                      onClick={() => toggleDayComplete(i)}
+                      className={`weekday ${completedDays.includes(i) ? 'completed' : ''} ${activeDay === i ? 'active' : ''}`}
+                      onClick={() => {
+                        if (activeDay === i) {
+                          endWorkout();
+                        } else {
+                          startWorkout(i);
+                        }
+                      }}
                     >
                       {completedDays.includes(i) ? '✓' : i + 1}
                     </div>
                   ))}
                 </div>
-                
-                {workouts.map((workout, i) => (
-                  <div key={i} className="workout-card" style={{ 
-                    borderLeftColor: completedDays.includes(i) ? 'var(--success)' : 'var(--accent)'
-                  }}>
-                    <div className="workout-day">{workout.day}</div>
-                    <div className="workout-title">{workout.title}</div>
-                    <ul className="workout-exercises">
-                      {workout.exercises.map((ex, j) => {
-                        const exerciseKey = ex.name.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
-                        const hasGuide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]];
-                        return (
-                          <li 
-                            key={j} 
-                            className={`workout-exercise ${hasGuide ? 'clickable' : ''}`}
-                            onClick={() => {
-                              const guide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]] || Object.values(EXERCISE_GUIDE).find(g => exerciseKey.includes(g.name.toLowerCase().split(' ')[0]));
-                              if (guide) setSelectedExercise(guide.name);
-                            }}
-                          >
-                            <span className="exercise-name">{ex.name}</span>
-                            <span className="exercise-sets">{ex.sets}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
+
+                {activeDay !== null && (
+                  <div className="card" style={{ background: 'linear-gradient(135deg, var(--accent), var(--pink))', marginBottom: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 14, opacity: 0.9 }}>Workout Timer</div>
+                        <div style={{ fontSize: 32, fontWeight: 800 }}>{formatTime(timerSeconds)}</div>
+                      </div>
+                      <button 
+                        onClick={endWorkout}
+                        style={{ 
+                          background: 'rgba(255,255,255,0.2)', 
+                          border: 'none', 
+                          color: 'white', 
+                          padding: '12px 24px', 
+                          borderRadius: 12, 
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Finish Workout
+                      </button>
+                    </div>
                   </div>
-                ))}
+                )}
+                
+                {workouts.map((workout, i) => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const todayLog = exerciseLogs.find(l => l.date === today && l.dayIndex === i);
+                  const allExercisesComplete = todayLog?.exercises.every(ex => ex.completed);
+                  
+                  return (
+                    <div key={i} className="workout-card" style={{ 
+                      borderLeftColor: allExercisesComplete ? 'var(--success)' : (activeDay === i ? 'var(--warning)' : 'var(--accent)'),
+                      opacity: activeDay !== null && activeDay !== i ? 0.5 : 1,
+                      pointerEvents: activeDay !== null && activeDay !== i ? 'none' : 'auto'
+                    }}>
+                      <div className="workout-day">{workout.day}</div>
+                      <div className="workout-title">{workout.title}</div>
+                      
+                      {activeDay === i && todayLog && (
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+                            Today's Progress: {todayLog.exercises.filter(e => e.completed).length}/{todayLog.exercises.length} exercises
+                          </div>
+                        </div>
+                      )}
+                      
+                      <ul className="workout-exercises">
+                        {workout.exercises.map((ex, j) => {
+                          const exerciseKey = ex.name.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+                          const hasGuide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]];
+                          const numSets = parseInt(ex.sets.split('x')[0]) || 3;
+                          const todayLog = activeDay === i ? getTodayLog() : null;
+                          const exerciseLog = todayLog?.exercises.find(e => e.name === ex.name);
+                          
+                          return (
+                            <li 
+                              key={j} 
+                              className={`workout-exercise ${hasGuide ? 'clickable' : ''}`}
+                              onClick={() => {
+                                if (!hasGuide) return;
+                                const guide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]] || Object.values(EXERCISE_GUIDE).find(g => exerciseKey.includes(g.name.toLowerCase().split(' ')[0]));
+                                if (guide) setSelectedExercise(guide.name);
+                              }}
+                              style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                <span className="exercise-name">{ex.name}</span>
+                                <span className="exercise-sets">{ex.sets}</span>
+                              </div>
+                              
+                              {activeDay === i && (
+                                <div style={{ width: '100%', background: 'var(--bg-secondary)', borderRadius: 12, padding: 12 }}>
+                                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+                                    Set {numSets > 1 ? `1-${numSets}` : '1'} - Enter weight/reps
+                                  </div>
+                                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    {Array.from({ length: numSets }).map((_, setIdx) => (
+                                      <div key={setIdx} style={{ 
+                                        display: 'flex', 
+                                        gap: 4, 
+                                        alignItems: 'center',
+                                        background: exerciseLog?.sets[setIdx]?.completed ? 'var(--success)' : 'var(--bg-card)',
+                                        padding: '4px 8px',
+                                        borderRadius: 8
+                                      }}>
+                                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{setIdx + 1}</span>
+                                        <input
+                                          type="number"
+                                          placeholder="kg"
+                                          value={exerciseLog?.sets[setIdx]?.weight || ''}
+                                          onChange={(e) => updateExerciseSet(ex.name, setIdx, 'weight', e.target.value)}
+                                          onClick={(e) => e.stopPropagation()}
+                                          style={{ 
+                                            width: 50, 
+                                            background: 'transparent', 
+                                            border: 'none', 
+                                            color: 'white', 
+                                            fontSize: 12,
+                                            textAlign: 'center'
+                                          }}
+                                        />
+                                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>×</span>
+                                        <input
+                                          type="number"
+                                          placeholder="reps"
+                                          value={exerciseLog?.sets[setIdx]?.reps || ''}
+                                          onChange={(e) => updateExerciseSet(ex.name, setIdx, 'reps', e.target.value)}
+                                          onClick={(e) => e.stopPropagation()}
+                                          style={{ 
+                                            width: 40, 
+                                            background: 'transparent', 
+                                            border: 'none', 
+                                            color: 'white', 
+                                            fontSize: 12,
+                                            textAlign: 'center'
+                                          }}
+                                        />
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); toggleSetComplete(ex.name, setIdx); }}
+                                          style={{ 
+                                            width: 24, 
+                                            height: 24, 
+                                            borderRadius: '50%', 
+                                            border: '2px solid rgba(255,255,255,0.3)',
+                                            background: exerciseLog?.sets[setIdx]?.completed ? 'var(--success)' : 'transparent',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: 12,
+                                            color: 'white',
+                                            padding: 0
+                                          }}
+                                        >
+                                          {exerciseLog?.sets[setIdx]?.completed ? '✓' : ''}
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })}
               </>
             )}
           </div>
@@ -1938,6 +2208,18 @@ export default function WorkoutPlanner() {
                 <div className="stat-value">{profile.weight}kg</div>
                 <div className="stat-label">Current Weight</div>
               </div>
+              <div className="stat-card">
+                <div className="stat-value">{exerciseLogs.length}</div>
+                <div className="stat-label">Sessions Logged</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">
+                  {exerciseLogs.reduce((acc, log) => acc + log.duration, 0) > 0 
+                    ? formatTime(exerciseLogs.reduce((acc, log) => acc + log.duration, 0))
+                    : '0:00'}
+                </div>
+                <div className="stat-label">Total Time</div>
+              </div>
             </div>
 
             <div className="card">
@@ -1966,6 +2248,43 @@ export default function WorkoutPlanner() {
                 </div>
               </div>
             </div>
+
+            {exerciseLogs.length > 0 && (
+              <div className="card">
+                <h3 style={{ fontSize: 16, marginBottom: 12 }}>📝 Recent Sessions</h3>
+                {exerciseLogs.slice(-5).reverse().map((log, i) => (
+                  <div key={i} style={{ 
+                    background: 'var(--bg-secondary)', 
+                    borderRadius: 12, 
+                    padding: 12, 
+                    marginBottom: 8 
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontWeight: 600 }}>Day {log.dayIndex + 1}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{log.date}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-secondary)' }}>
+                      <span>⏱️ {formatTime(log.duration)}</span>
+                      <span>✅ {log.exercises.filter(e => e.completed).length}/{log.exercises.length} exercises</span>
+                    </div>
+                    {log.exercises.filter(e => e.completed).length > 0 && (
+                      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>
+                        {log.exercises.filter(e => e.completed).slice(0, 3).map((ex, j) => (
+                          <span key={j} style={{ 
+                            background: 'var(--bg-card)', 
+                            padding: '2px 8px', 
+                            borderRadius: 4, 
+                            marginRight: 4 
+                          }}>
+                            {ex.name}: {ex.sets.filter(s => s.weight && s.reps).map(s => `${s.weight}kg×${s.reps}`).join(', ') || 'completed'}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="card">
               <h3 style={{ fontSize: 16, marginBottom: 12 }}>💊 Supplements to Consider</h3>
