@@ -2020,7 +2020,7 @@ export default function WorkoutPlanner() {
             Sign in to save your workout data securely in the cloud and access it from any device.
           </p>
           <button 
-            onClick={() => { setShowAuthModal(true); setAuthMode('signup'); }}
+            onClick={() => { console.log('Get Started clicked!'); setShowAuthModal(true); setAuthMode('signup'); }}
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--pink))',
               border: 'none',
@@ -2037,7 +2037,7 @@ export default function WorkoutPlanner() {
           <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
             Already have an account?{' '}
             <span 
-              onClick={() => { setShowAuthModal(true); setAuthMode('signin'); }}
+              onClick={() => { console.log('Sign In clicked!'); setShowAuthModal(true); setAuthMode('signin'); }}
               style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
             >
               Sign In
