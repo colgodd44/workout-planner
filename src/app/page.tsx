@@ -1674,7 +1674,10 @@ export default function WorkoutPlanner() {
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     
+    console.log('Setting up auth listener...');
+    
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log('Auth state changed:', firebaseUser ? 'logged in' : 'not logged in');
       setUser(firebaseUser);
       if (firebaseUser) {
         const loadUserData = async () => {
@@ -1702,6 +1705,7 @@ export default function WorkoutPlanner() {
     });
     
     timeout = setTimeout(() => {
+      console.log('Auth timeout reached, hiding loading');
       setAuthLoading(false);
     }, 5000);
     
