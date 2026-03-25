@@ -1675,23 +1675,38 @@ export default function WorkoutPlanner() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        const docRef = doc(db, 'users', firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.profile) setProfile(data.profile);
-          if (data.completedDays) setCompletedDays(data.completedDays);
-          if (data.exerciseLogs) setExerciseLogs(data.exerciseLogs);
-          if (data.progressPhotos) setProgressPhotos(data.progressPhotos);
-          localStorage.setItem('workout-profile', JSON.stringify(data.profile || {}));
-          localStorage.setItem('workout-completed', JSON.stringify(data.completedDays || []));
-          localStorage.setItem('workout-logs', JSON.stringify(data.exerciseLogs || []));
-          localStorage.setItem('progress-photos', JSON.stringify(data.progressPhotos || []));
+        try {
+          const docRef = doc(db, 'users', firebaseUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.profile) setProfile(data.profile);
+            if (data.completedDays) setCompletedDays(data.completedDays);
+            if (data.exerciseLogs) setExerciseLogs(data.exerciseLogs);
+            if (data.progressPhotos) setProgressPhotos(data.progressPhotos);
+            localStorage.setItem('workout-profile', JSON.stringify(data.profile || {}));
+            localStorage.setItem('workout-completed', JSON.stringify(data.completedDays || []));
+            localStorage.setItem('workout-logs', JSON.stringify(data.exerciseLogs || []));
+            localStorage.setItem('progress-photos', JSON.stringify(data.progressPhotos || []));
+          }
+        } catch (err) {
+          console.error('Error loading user data:', err);
         }
       }
       setAuthLoading(false);
+    }, (error) => {
+      console.error('Auth error:', error);
+      setAuthLoading(false);
     });
-    return () => unsubscribe();
+    
+    const timeout = setTimeout(() => {
+      setAuthLoading(false);
+    }, 5000);
+    
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   useEffect(() => {
