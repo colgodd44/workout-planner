@@ -2050,21 +2050,40 @@ export default function WorkoutPlanner() {
                           return (
                             <li 
                               key={j} 
-                              className={`workout-exercise ${hasGuide ? 'clickable' : ''}`}
-                              onClick={() => {
-                                if (!hasGuide) return;
-                                const guide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]] || Object.values(EXERCISE_GUIDE).find(g => exerciseKey.includes(g.name.toLowerCase().split(' ')[0]));
-                                if (guide) setSelectedExercise(guide.name);
-                              }}
                               style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
                             >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                <span className="exercise-name">{ex.name}</span>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <span className="exercise-name">{ex.name}</span>
+                                  {hasGuide && (
+                                    <button
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        const guide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]] || Object.values(EXERCISE_GUIDE).find(g => exerciseKey.includes(g.name.toLowerCase().split(' ')[0]));
+                                        if (guide) setSelectedExercise(guide.name);
+                                      }}
+                                      style={{
+                                        background: 'var(--bg-secondary)',
+                                        border: 'none',
+                                        borderRadius: 6,
+                                        padding: '4px 8px',
+                                        fontSize: 12,
+                                        color: 'var(--text-muted)',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      ℹ️
+                                    </button>
+                                  )}
+                                </div>
                                 <span className="exercise-sets">{ex.sets}</span>
                               </div>
                               
                               {activeDay === i && (
-                                <div style={{ width: '100%', background: 'var(--bg-secondary)', borderRadius: 12, padding: 12 }}>
+                                <div 
+                                  style={{ width: '100%', background: 'var(--bg-secondary)', borderRadius: 12, padding: 12 }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
                                     Set {numSets > 1 ? `1-${numSets}` : '1'} - Enter weight/reps
                                   </div>
@@ -2075,46 +2094,58 @@ export default function WorkoutPlanner() {
                                         gap: 4, 
                                         alignItems: 'center',
                                         background: exerciseLog?.sets[setIdx]?.completed ? 'var(--success)' : 'var(--bg-card)',
-                                        padding: '4px 8px',
+                                        padding: '8px 12px',
                                         borderRadius: 8
                                       }}>
-                                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{setIdx + 1}</span>
+                                        <span style={{ fontSize: 11, color: 'var(--text-muted)', minWidth: 16 }}>{setIdx + 1}</span>
                                         <input
                                           type="number"
                                           placeholder="kg"
+                                          inputMode="decimal"
                                           value={exerciseLog?.sets[setIdx]?.weight || ''}
                                           onChange={(e) => updateExerciseSet(ex.name, setIdx, 'weight', e.target.value)}
                                           onClick={(e) => e.stopPropagation()}
+                                          onPointerDown={(e) => e.stopPropagation()}
                                           style={{ 
                                             width: 50, 
                                             background: 'transparent', 
                                             border: 'none', 
                                             color: 'white', 
-                                            fontSize: 12,
-                                            textAlign: 'center'
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            outline: 'none',
+                                            padding: 0,
+                                            WebkitAppearance: 'none',
+                                            MozAppearance: 'textfield'
                                           }}
                                         />
-                                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>×</span>
+                                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>×</span>
                                         <input
                                           type="number"
                                           placeholder="reps"
+                                          inputMode="numeric"
                                           value={exerciseLog?.sets[setIdx]?.reps || ''}
                                           onChange={(e) => updateExerciseSet(ex.name, setIdx, 'reps', e.target.value)}
                                           onClick={(e) => e.stopPropagation()}
+                                          onPointerDown={(e) => e.stopPropagation()}
                                           style={{ 
                                             width: 40, 
                                             background: 'transparent', 
                                             border: 'none', 
                                             color: 'white', 
-                                            fontSize: 12,
-                                            textAlign: 'center'
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            outline: 'none',
+                                            padding: 0,
+                                            WebkitAppearance: 'none',
+                                            MozAppearance: 'textfield'
                                           }}
                                         />
                                         <button
                                           onClick={(e) => { e.stopPropagation(); toggleSetComplete(ex.name, setIdx); }}
                                           style={{ 
-                                            width: 24, 
-                                            height: 24, 
+                                            width: 28, 
+                                            height: 28, 
                                             borderRadius: '50%', 
                                             border: '2px solid rgba(255,255,255,0.3)',
                                             background: exerciseLog?.sets[setIdx]?.completed ? 'var(--success)' : 'transparent',
@@ -2124,7 +2155,8 @@ export default function WorkoutPlanner() {
                                             justifyContent: 'center',
                                             fontSize: 12,
                                             color: 'white',
-                                            padding: 0
+                                            padding: 0,
+                                            marginLeft: 4
                                           }}
                                         >
                                           {exerciseLog?.sets[setIdx]?.completed ? '✓' : ''}
