@@ -50,6 +50,15 @@ interface WorkoutLog {
   notes: string;
 }
 
+interface ProgressPhoto {
+  id: string;
+  dataUrl: string;
+  date: string;
+  week: string;
+  notes: string;
+  category: 'front' | 'side' | 'back' | 'other';
+}
+
 const BODY_TYPES = [
   { id: 'ectomorph', icon: '🔵', name: 'Ectomorph', desc: 'Thin, hard to gain weight' },
   { id: 'mesomorph', icon: '🟢', name: 'Mesomorph', desc: 'Athletic, muscular' },
@@ -1586,7 +1595,13 @@ export default function WorkoutPlanner() {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [activeDay, setActiveDay] = useState<number | null>(null);
   const [workoutStartTime, setWorkoutStartTime] = useState<number | null>(null);
+  const [progressPhotos, setProgressPhotos] = useState<ProgressPhoto[]>([]);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<ProgressPhoto | null>(null);
+  const [photoCategory, setPhotoCategory] = useState<'front' | 'side' | 'back' | 'other' | 'all'>('front');
+  const [photoNotes, setPhotoNotes] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -1603,6 +1618,10 @@ export default function WorkoutPlanner() {
     const savedLogs = localStorage.getItem('workout-logs');
     if (savedLogs) {
       setExerciseLogs(JSON.parse(savedLogs));
+    }
+    const savedPhotos = localStorage.getItem('progress-photos');
+    if (savedPhotos) {
+      setProgressPhotos(JSON.parse(savedPhotos));
     }
   }, []);
 
@@ -1633,6 +1652,51 @@ export default function WorkoutPlanner() {
   const saveExerciseLogs = (logs: WorkoutLog[]) => {
     setExerciseLogs(logs);
     localStorage.setItem('workout-logs', JSON.stringify(logs));
+  };
+
+  const saveProgressPhotos = (photos: ProgressPhoto[]) => {
+    setProgressPhotos(photos);
+    localStorage.setItem('progress-photos', JSON.stringify(photos));
+  };
+
+  const calculateWeekNumber = (date: string) => {
+    const start = new Date(profile.createdAt || date);
+    const current = new Date(date);
+    const diff = Math.floor((current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 7));
+    return `Week ${diff + 1}`;
+  };
+
+  const handleAddPhoto = (dataUrl: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    const newPhoto: ProgressPhoto = {
+      id: Date.now().toString(),
+      dataUrl,
+      date: today,
+      week: calculateWeekNumber(today),
+      notes: photoNotes,
+      category: photoCategory === 'all' ? 'front' : photoCategory
+    };
+    saveProgressPhotos([...progressPhotos, newPhoto]);
+    setPhotoNotes('');
+    setShowPhotoModal(false);
+  };
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleAddPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const deletePhoto = (id: string) => {
+    if (confirm('Delete this photo?')) {
+      saveProgressPhotos(progressPhotos.filter(p => p.id !== id));
+      setSelectedPhoto(null);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -2331,6 +2395,102 @@ export default function WorkoutPlanner() {
             </div>
           </div>
         )}
+
+        {activeTab === 'gallery' && (
+          <div className="tab-content active">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 className="section-title" style={{ marginBottom: 0 }}>Progress Gallery</h2>
+              <button 
+                className="btn btn-primary"
+                onClick={() => setShowPhotoModal(true)}
+                style={{ padding: '10px 16px' }}
+              >
+                📷 Add Photo
+              </button>
+            </div>
+
+            {progressPhotos.length === 0 ? (
+              <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>📸</div>
+                <h3 style={{ marginBottom: 8 }}>No Progress Photos Yet</h3>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
+                  Track your fitness journey by taking weekly photos to see your progress over time.
+                </p>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => setShowPhotoModal(true)}
+                >
+                  Take Your First Photo
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                    {progressPhotos.length} photo{progressPhotos.length !== 1 ? 's' : ''} • {progressPhotos.length > 1 ? `${progressPhotos.length} weeks of progress` : 'Keep snapping weekly!'}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
+                    {['front', 'side', 'back', 'other'].map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setPhotoCategory(cat as any)}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: 20,
+                          border: 'none',
+                          background: photoCategory === cat ? 'var(--accent)' : 'var(--bg-card)',
+                          color: 'white',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {cat === 'front' ? '👤' : cat === 'side' ? '↔️' : cat === 'back' ? '👤‍🦯' : '📷'} {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
+                  {progressPhotos
+                    .filter(p => photoCategory === 'all' || p.category === photoCategory)
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map(photo => (
+                      <div 
+                        key={photo.id}
+                        onClick={() => setSelectedPhoto(photo)}
+                        style={{
+                          position: 'relative',
+                          aspectRatio: '3/4',
+                          borderRadius: 12,
+                          overflow: 'hidden',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <img 
+                          src={photo.dataUrl} 
+                          alt={photo.date}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <div style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                          padding: '20px 8px 8px',
+                          fontSize: 11
+                        }}>
+                          <div style={{ fontWeight: 600 }}>{photo.week}</div>
+                          <div style={{ color: 'rgba(255,255,255,0.7)' }}>{photo.date}</div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="bottom-nav">
@@ -2339,6 +2499,7 @@ export default function WorkoutPlanner() {
           { id: 'workouts', icon: '💪', label: 'Workouts' },
           { id: 'meals', icon: '🍽️', label: 'Meals' },
           { id: 'progress', icon: '📊', label: 'Progress' },
+          { id: 'gallery', icon: '📸', label: 'Gallery' },
         ].map(item => (
           <button
             key={item.id}
@@ -2417,6 +2578,183 @@ export default function WorkoutPlanner() {
           </div>
         );
       })()}
+
+      {showPhotoModal && (
+        <div className="analyze-modal" onClick={() => setShowPhotoModal(false)}>
+          <div className="analyze-content" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>📷 Add Progress Photo</h3>
+              <button 
+                onClick={() => setShowPhotoModal(false)}
+                style={{ 
+                  background: 'var(--bg-card)', 
+                  border: 'none', 
+                  color: 'white', 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: '50%', 
+                  cursor: 'pointer',
+                  fontSize: 18
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
+              Take a photo in the same pose each week to track your progress!
+            </p>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Photo Type:</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[
+                  { id: 'front', icon: '👤', label: 'Front' },
+                  { id: 'side', icon: '↔️', label: 'Side' },
+                  { id: 'back', icon: '👤‍🦯', label: 'Back' },
+                  { id: 'other', icon: '📷', label: 'Other' },
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setPhotoCategory(cat.id as any)}
+                    style={{
+                      flex: 1,
+                      padding: '12px 8px',
+                      borderRadius: 12,
+                      border: '2px solid',
+                      borderColor: photoCategory === cat.id ? 'var(--accent)' : 'transparent',
+                      background: photoCategory === cat.id ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-card)',
+                      color: 'white',
+                      cursor: 'pointer',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div style={{ fontSize: 20 }}>{cat.icon}</div>
+                    <div style={{ fontSize: 11, marginTop: 4 }}>{cat.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Notes (optional):</label>
+              <textarea
+                value={photoNotes}
+                onChange={(e) => setPhotoNotes(e.target.value)}
+                placeholder="How are you feeling? Any changes you've noticed?"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: 'var(--bg-card)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14,
+                  resize: 'none',
+                  minHeight: 60
+                }}
+              />
+            </div>
+
+            <input
+              type="file"
+              accept="image/*"
+              capture="user"
+              ref={photoInputRef}
+              onChange={handlePhotoFileChange}
+              style={{ display: 'none' }}
+            />
+
+            <button
+              onClick={() => photoInputRef.current?.click()}
+              style={{
+                width: '100%',
+                padding: 16,
+                background: 'linear-gradient(135deg, var(--accent), var(--pink))',
+                border: 'none',
+                borderRadius: 12,
+                color: 'white',
+                fontSize: 16,
+                fontWeight: 600,
+                cursor: 'pointer',
+                marginBottom: 12
+              }}
+            >
+              📸 Take Photo
+            </button>
+
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
+              Photos are stored locally on your device
+            </p>
+          </div>
+        </div>
+      )}
+
+      {selectedPhoto && (
+        <div className="analyze-modal" onClick={() => setSelectedPhoto(null)}>
+          <div className="analyze-content" style={{ maxWidth: '90%', maxHeight: '90vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{selectedPhoto.week}</h3>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>{selectedPhoto.date}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedPhoto(null)}
+                style={{ 
+                  background: 'var(--bg-card)', 
+                  border: 'none', 
+                  color: 'white', 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: '50%', 
+                  cursor: 'pointer',
+                  fontSize: 18
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <img 
+              src={selectedPhoto.dataUrl} 
+              alt={selectedPhoto.week}
+              style={{ 
+                width: '100%', 
+                borderRadius: 12, 
+                marginBottom: 16 
+              }}
+            />
+
+            {selectedPhoto.notes && (
+              <div style={{ 
+                background: 'var(--bg-card)', 
+                padding: 12, 
+                borderRadius: 12,
+                marginBottom: 16 
+              }}>
+                <p style={{ fontSize: 14, margin: 0 }}>{selectedPhoto.notes}</p>
+              </div>
+            )}
+
+            <button
+              onClick={() => deletePhoto(selectedPhoto.id)}
+              style={{
+                width: '100%',
+                padding: 12,
+                background: 'var(--error)',
+                border: 'none',
+                borderRadius: 12,
+                color: 'white',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              🗑️ Delete Photo
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
