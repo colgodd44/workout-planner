@@ -308,6 +308,24 @@ body {
   align-items: center;
 }
 
+.workout-exercise.clickable {
+  cursor: pointer;
+  padding: 10px 8px;
+  margin: 2px -8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.workout-exercise.clickable:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.workout-exercise.clickable .exercise-name::after {
+  content: ' ℹ️';
+  font-size: 12px;
+  opacity: 0.5;
+}
+
 .workout-exercise:last-child {
   border-bottom: none;
 }

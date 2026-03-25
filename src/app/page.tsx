@@ -299,6 +299,1249 @@ const SUPPLEMENTS: { name: string; desc: string; icon: string }[] = [
   { name: 'Glutamine', desc: 'Immune support', icon: '🛡️' },
 ];
 
+const EXERCISE_GUIDE: Record<string, { name: string; muscle: string; steps: string[]; tips: string[]; difficulty: string }> = {
+  'bench press': {
+    name: 'Bench Press',
+    muscle: 'Chest, Shoulders, Triceps',
+    steps: [
+      'Lie flat on a bench with feet firmly on the ground',
+      'Grip the bar slightly wider than shoulder-width apart',
+      'Unrack the bar and hold it directly above your chest',
+      'Lower the bar slowly to mid-chest, keeping elbows at 45 degrees',
+      'Press the bar back up to the starting position',
+      'Keep your core tight and back slightly arched throughout'
+    ],
+    tips: [
+      'Warm up with lighter weights first',
+      'Use a spotter for heavy lifts',
+      'Keep wrists straight, not bent back'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'squat': {
+    name: 'Squat',
+    muscle: 'Quadriceps, Glutes, Hamstrings',
+    steps: [
+      'Stand with feet shoulder-width apart, toes slightly pointed out',
+      'Keep your chest up and core engaged',
+      'Push your hips back as if sitting in a chair',
+      'Lower until thighs are parallel to the ground',
+      'Drive through your heels to stand back up',
+      'Keep knees tracking over toes, not caving inward'
+    ],
+    tips: [
+      'Start with bodyweight if new to squats',
+      'Focus on form before adding weight',
+      'Keep weight on your heels'
+    ],
+    difficulty: 'Beginner'
+  },
+  'deadlift': {
+    name: 'Deadlift',
+    muscle: 'Back, Glutes, Hamstrings, Core',
+    steps: [
+      'Stand with feet hip-width apart, bar over mid-foot',
+      'Bend down and grip the bar just outside your legs',
+      'Keep your back straight and chest up',
+      'Drive through your heels, lifting the bar',
+      'Stand up fully, squeezing your glutes at the top',
+      'Lower the bar back down with control, hinging at hips'
+    ],
+    tips: [
+      'Keep the bar close to your body',
+      'Never round your lower back',
+      'Start light to master form'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'overhead press': {
+    name: 'Overhead Press',
+    muscle: 'Shoulders, Triceps',
+    steps: [
+      'Stand with feet shoulder-width apart',
+      'Hold the bar at shoulder height, hands just outside shoulder width',
+      'Brace your core and squeeze your glutes',
+      'Press the bar straight up overhead',
+      'Lock out your arms at the top',
+      'Lower the bar back to shoulder height with control'
+    ],
+    tips: [
+      'Avoid arching your back excessively',
+      'Keep the bar moving in a straight line',
+      'Engage your core throughout'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'push-up': {
+    name: 'Push-Up',
+    muscle: 'Chest, Shoulders, Triceps, Core',
+    steps: [
+      'Start in a plank position with hands slightly wider than shoulders',
+      'Keep your body in a straight line from head to heels',
+      'Lower your chest to the ground, keeping elbows at 45 degrees',
+      'Push back up to the starting position',
+      'Keep your core tight throughout the movement'
+    ],
+    tips: [
+      'Modify on knees if needed',
+      'Focus on full range of motion',
+      'Keep neck neutral, look at the floor'
+    ],
+    difficulty: 'Beginner'
+  },
+  'lunges': {
+    name: 'Lunges',
+    muscle: 'Quadriceps, Glutes, Hamstrings',
+    steps: [
+      'Stand with feet hip-width apart',
+      'Step forward with one leg',
+      'Lower your body until both knees are at 90 degrees',
+      'Front knee should be directly over ankle',
+      'Push back to the starting position',
+      'Alternate legs or complete all reps on one side'
+    ],
+    tips: [
+      'Keep your torso upright',
+      'Take a big enough step to maintain balance',
+      'Can do walking lunges or stationary'
+    ],
+    difficulty: 'Beginner'
+  },
+  'plank': {
+    name: 'Plank',
+    muscle: 'Core, Shoulders',
+    steps: [
+      'Start in a push-up position on your forearms',
+      'Keep your body in a straight line from head to heels',
+      'Engage your core and squeeze your glutes',
+      'Hold the position without letting hips sag or rise',
+      'Breathe steadily throughout'
+    ],
+    tips: [
+      'Don\'t hold your breath',
+      'Focus on core engagement, not just holding position',
+      'Start with 20-30 second holds'
+    ],
+    difficulty: 'Beginner'
+  },
+  'pull-up': {
+    name: 'Pull-Up',
+    muscle: 'Back, Biceps, Shoulders',
+    steps: [
+      'Hang from a bar with hands slightly wider than shoulders',
+      'Start from a dead hang with arms fully extended',
+      'Pull your body up until chin is over the bar',
+      'Keep your core tight and avoid swinging',
+      'Lower yourself back down with control',
+      'Fully extend arms at the bottom of each rep'
+    ],
+    tips: [
+      'Use an assisted band if needed',
+      'Focus on pulling with your back, not arms',
+      'Can do chin-ups (palms toward you) as easier variation'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'barbell row': {
+    name: 'Barbell Row',
+    muscle: 'Back, Biceps',
+    steps: [
+      'Stand with feet shoulder-width apart, holding a barbell',
+      'Hinge forward at hips until torso is nearly parallel to ground',
+      'Keep your back straight and core engaged',
+      'Pull the bar to your lower chest/upper abdomen',
+      'Squeeze your shoulder blades together at the top',
+      'Lower the bar back down with control'
+    ],
+    tips: [
+      'Keep your lower back neutral',
+      'Pull with your elbows, not just hands',
+      'Use a mixed grip for heavy weights'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'bicep curl': {
+    name: 'Bicep Curl',
+    muscle: 'Biceps',
+    steps: [
+      'Stand with feet shoulder-width apart, dumbbells at sides',
+      'Keep elbows close to your sides',
+      'Curl the weights up toward your shoulders',
+      'Squeeze at the top of the movement',
+      'Lower slowly back to the starting position',
+      'Keep your upper arms stationary'
+    ],
+    tips: [
+      'Don\'t swing your body',
+      'Control the negative portion of the rep',
+      'Can do hammer curls (palms facing each other)'
+    ],
+    difficulty: 'Beginner'
+  },
+  'tricep pushdown': {
+    name: 'Tricep Pushdown',
+    muscle: 'Triceps',
+    steps: [
+      'Stand facing a cable machine with rope or bar attachment',
+      'Grip the handle with hands shoulder-width apart',
+      'Keep elbows pinned to your sides',
+      'Push the handle down until arms are fully extended',
+      'Squeeze your triceps at the bottom',
+      'Return to starting position with control'
+    ],
+    tips: [
+      'Keep upper arms stationary',
+      'Don\'t lean forward excessively',
+      'Focus on the triceps, not shoulders'
+    ],
+    difficulty: 'Beginner'
+  },
+  'leg press': {
+    name: 'Leg Press',
+    muscle: 'Quadriceps, Glutes, Hamstrings',
+    steps: [
+      'Sit in the leg press machine with back against the pad',
+      'Place feet shoulder-width apart on the platform',
+      'Release the safety handles',
+      'Lower the platform by bending your knees',
+      'Go down until knees are at 90 degrees',
+      'Press through your heels to extend your legs'
+    ],
+    tips: [
+      'Keep your lower back pressed against the pad',
+      'Don\'t lock your knees at the top',
+      'Start with a lighter weight to learn the movement'
+    ],
+    difficulty: 'Beginner'
+  },
+  'dumbbell shoulder press': {
+    name: 'Dumbbell Shoulder Press',
+    muscle: 'Shoulders, Triceps',
+    steps: [
+      'Sit on a bench with back support or stand',
+      'Hold dumbbells at shoulder height, palms facing forward',
+      'Press the weights up overhead until arms are extended',
+      'Keep a slight bend in your elbows at the top',
+      'Lower the dumbbells back to shoulder height slowly',
+      'Maintain core engagement throughout'
+    ],
+    tips: [
+      'Start with lighter dumbbells to master form',
+      'Can be done seated or standing',
+      'Keep core tight to avoid back arching'
+    ],
+    difficulty: 'Beginner'
+  },
+  'lateral raise': {
+    name: 'Lateral Raise',
+    muscle: 'Shoulders (Side Delt)',
+    steps: [
+      'Stand with dumbbells at your sides',
+      'Keep a slight bend in your elbows',
+      'Raise arms out to the sides until parallel with floor',
+      'Keep palms facing down or toward each other',
+      'Lower slowly back to starting position',
+      'Avoid using momentum or swinging'
+    ],
+    tips: [
+      'Use light weight to avoid shoulder strain',
+      'Lead with your elbows, not hands',
+      'Slight bend in elbows protects joints'
+    ],
+    difficulty: 'Beginner'
+  },
+  'romanian deadlift': {
+    name: 'Romanian Deadlift',
+    muscle: 'Hamstrings, Glutes, Lower Back',
+    steps: [
+      'Stand holding a barbell or dumbbells in front of you',
+      'Keep a slight bend in your knees',
+      'Hinge at your hips, pushing them back',
+      'Lower the weight along your legs',
+      'Feel a stretch in your hamstrings',
+      'Drive hips forward to return to standing'
+    ],
+    tips: [
+      'Keep the bar close to your legs',
+      'Focus on the hip hinge movement',
+      'Don\'t round your back'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'leg curl': {
+    name: 'Leg Curl',
+    muscle: 'Hamstrings',
+    steps: [
+      'Lie face down on a leg curl machine',
+      'Position the pad just above your heels',
+      'Curl your heels toward your glutes',
+      'Squeeze at the top of the movement',
+      'Lower slowly back to starting position',
+      'Keep your hips pressed to the pad'
+    ],
+    tips: [
+      'Don\'t lift your hips off the pad',
+      'Control the eccentric portion of the lift',
+      'Point toes inward or outward to vary emphasis'
+    ],
+    difficulty: 'Beginner'
+  },
+  'calf raise': {
+    name: 'Calf Raise',
+    muscle: 'Calves',
+    steps: [
+      'Stand on a raised surface with heels hanging off',
+      'Place hands on a wall or machine for balance',
+      'Lower your heels below the platform level',
+      'Rise up onto your toes as high as possible',
+      'Squeeze your calves at the top',
+      'Lower slowly back down'
+    ],
+    tips: [
+      'Use a full range of motion',
+      'Can do seated calf raises for different emphasis',
+      'Hold the stretch at the bottom'
+    ],
+    difficulty: 'Beginner'
+  },
+  'burpee': {
+    name: 'Burpee',
+    muscle: 'Full Body Cardio',
+    steps: [
+      'Start standing with feet shoulder-width apart',
+      'Squat down and place hands on the floor',
+      'Jump feet back into a plank position',
+      'Perform a push-up (optional)',
+      'Jump feet back toward your hands',
+      'Explosively jump up with arms overhead'
+    ],
+    tips: [
+      'Modify by stepping back instead of jumping',
+      'Keep core tight throughout',
+      'Land softly to protect joints'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'mountain climber': {
+    name: 'Mountain Climber',
+    muscle: 'Core, Shoulders, Cardio',
+    steps: [
+      'Start in a plank position',
+      'Drive one knee toward your chest',
+      'Quickly switch legs, extending the first leg back',
+      'Continue alternating legs at a quick pace',
+      'Keep your hips level, don\'t let them bounce',
+      'Maintain a fast pace for cardio benefit'
+    ],
+    tips: [
+      'Keep your core tight',
+      'Move at a controlled but quick pace',
+      'Look at the floor to maintain neck alignment'
+    ],
+    difficulty: 'Beginner'
+  },
+  'russian twist': {
+    name: 'Russian Twist',
+    muscle: 'Obliques, Core',
+    steps: [
+      'Sit with knees bent, feet on the floor',
+      'Lean back slightly, keeping back straight',
+      'Clasp hands together in front of you',
+      'Rotate your torso to one side',
+      'Return to center, then rotate to the other side',
+      'Keep your core engaged throughout'
+    ],
+    tips: [
+      'Lift feet for more challenge',
+      'Move with control, not momentum',
+      'Can add weight for resistance'
+    ],
+    difficulty: 'Beginner'
+  },
+  'bicycle crunch': {
+    name: 'Bicycle Crunch',
+    muscle: 'Abs, Obliques',
+    steps: [
+      'Lie on your back with hands behind your head',
+      'Lift shoulders off the ground',
+      'Bring one knee toward your opposite elbow',
+      'Extend the other leg straight out',
+      'Alternate sides in a pedaling motion',
+      'Keep lower back pressed to the floor'
+    ],
+    tips: [
+      'Focus on the twist, not just knee movement',
+      'Don\'t pull on your neck',
+      'Move at a controlled pace'
+    ],
+    difficulty: 'Beginner'
+  },
+  'glute bridge': {
+    name: 'Glute Bridge',
+    muscle: 'Glutes, Hamstrings',
+    steps: [
+      'Lie on your back with knees bent, feet flat on floor',
+      'Keep feet hip-width apart, close to your glutes',
+      'Drive through your heels to lift hips',
+      'Squeeze your glutes at the top',
+      'Your body should form a straight line from shoulders to knees',
+      'Lower back down with control'
+    ],
+    tips: [
+      'Don\'t push hips too high (no back arching)',
+      'Can do single-leg for more challenge',
+      'Hold at the top for 1-2 seconds'
+    ],
+    difficulty: 'Beginner'
+  },
+  'sumo squat': {
+    name: 'Sumo Squat',
+    muscle: 'Inner Thighs, Glutes, Quadriceps',
+    steps: [
+      'Stand with feet wider than shoulder-width apart',
+      'Point toes out at about 45 degrees',
+      'Keep your chest up and back straight',
+      'Squat down, pushing knees out over toes',
+      'Go down until thighs are parallel to ground',
+      'Drive through heels to stand back up'
+    ],
+    tips: [
+      'Keep knees tracking over toes',
+      'Hold a dumbbell for added resistance',
+      'Focus on pushing knees outward'
+    ],
+    difficulty: 'Beginner'
+  },
+  'wall sit': {
+    name: 'Wall Sit',
+    muscle: 'Quadriceps, Glutes',
+    steps: [
+      'Stand with your back against a wall',
+      'Slide down until thighs are parallel to floor',
+      'Keep knees at 90 degrees, directly over ankles',
+      'Press your lower back into the wall',
+      'Hold the position for the prescribed time',
+      'Keep breathing steadily throughout'
+    ],
+    tips: [
+      'Keep your back fully against the wall',
+      'Engage your core',
+      'Start with 20-30 seconds'
+    ],
+    difficulty: 'Beginner'
+  },
+  'jumping jack': {
+    name: 'Jumping Jack',
+    muscle: 'Full Body Cardio',
+    steps: [
+      'Stand with feet together, arms at sides',
+      'Jump feet out to the sides',
+      'Simultaneously raise arms overhead',
+      'Jump feet back together',
+      'Lower arms back to sides',
+      'Repeat at a steady pace'
+    ],
+    tips: [
+      'Land softly to protect joints',
+      'Keep a steady rhythm',
+      'Great for warm-up or cardio circuits'
+    ],
+    difficulty: 'Beginner'
+  },
+  'high knee': {
+    name: 'High Knees',
+    muscle: 'Hip Flexors, Core, Cardio',
+    steps: [
+      'Stand tall with feet hip-width apart',
+      'Drive one knee up toward your chest',
+      'Bring thigh parallel to the ground',
+      'Quickly switch to the other leg',
+      'Pump your arms in sync with your legs',
+      'Keep your core tight throughout'
+    ],
+    tips: [
+      'Stay on the balls of your feet',
+      'Move at a quick, controlled pace',
+      'Great for warming up or HIIT'
+    ],
+    difficulty: 'Beginner'
+  },
+  'skull crusher': {
+    name: 'Skull Crusher',
+    muscle: 'Triceps',
+    steps: [
+      'Lie on a flat bench holding a barbell or EZ bar',
+      'Extend arms straight up, perpendicular to floor',
+      'Keeping upper arms stationary, lower the weight',
+      'Bend elbows to bring weight toward forehead',
+      'Extend arms back to starting position',
+      'Keep elbows pointed at the ceiling'
+    ],
+    tips: [
+      'Use a spotter for heavy weights',
+      'Control the descent carefully',
+      'Can use dumbbells for better range of motion'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'face pull': {
+    name: 'Face Pull',
+    muscle: 'Rear Deltoids, Upper Back',
+    steps: [
+      'Set a cable machine to face height with rope attachment',
+      'Grip the rope with hands shoulder-width apart',
+      'Pull the rope toward your face, past your ears',
+      'Separate hands at the end, pulling elbows back',
+      'Squeeze your shoulder blades together',
+      'Return to starting position with control'
+    ],
+    tips: [
+      'Great for shoulder health',
+      'Keep core engaged',
+      'Don\'t use too much weight'
+    ],
+    difficulty: 'Beginner'
+  },
+  'hammer curl': {
+    name: 'Hammer Curl',
+    muscle: 'Biceps, Forearms',
+    steps: [
+      'Stand with dumbbells at your sides, palms facing in',
+      'Keep elbows close to your body',
+      'Curl the weights up toward your shoulders',
+      'Keep palms facing each other throughout',
+      'Squeeze at the top',
+      'Lower slowly back to starting position'
+    ],
+    tips: [
+      'Keeps constant tension on biceps',
+      'Don\'t swing your body',
+      'Great for building forearm strength'
+    ],
+    difficulty: 'Beginner'
+  },
+  'front squat': {
+    name: 'Front Squat',
+    muscle: 'Quadriceps, Core',
+    steps: [
+      'Stand with feet shoulder-width apart',
+      'Hold the barbell across the front of your shoulders',
+      'Keep elbows high, wrists straight',
+      'Squat down keeping torso upright',
+      'Go until elbows are above knees',
+      'Drive through heels to stand up'
+    ],
+    tips: [
+      'Requires good mobility in wrists and shoulders',
+      'Keep elbows high throughout',
+      'Less weight than back squat typically'
+    ],
+    difficulty: 'Advanced'
+  },
+  'tricep dip': {
+    name: 'Tricep Dip',
+    muscle: 'Triceps, Chest, Shoulders',
+    steps: [
+      'Sit on the edge of a bench or chair',
+      'Place hands beside your hips, fingers forward',
+      'Slide off the edge, supporting your weight with arms',
+      'Lower your body by bending elbows to 90 degrees',
+      'Press back up to starting position',
+      'Keep your back close to the bench'
+    ],
+    tips: [
+      'For more challenge, extend legs forward',
+      'Keep elbows pointed backward',
+      'Control the descent'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'incline bench press': {
+    name: 'Incline Bench Press',
+    muscle: 'Upper Chest, Shoulders, Triceps',
+    steps: [
+      'Set bench to 30-45 degree incline',
+      'Lie back with bar directly above upper chest',
+      'Grip bar slightly wider than shoulders',
+      'Lower bar to upper chest',
+      'Press bar back up to starting position',
+      'Keep feet flat on the floor'
+    ],
+    tips: [
+      'Don\'t set incline too steep',
+      'Squeeze chest at the top',
+      'Warm up with lighter weights'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'dumbbell flye': {
+    name: 'Dumbbell Flye',
+    muscle: 'Chest',
+    steps: [
+      'Lie on a flat bench holding dumbbells above chest',
+      'Keep a slight bend in your elbows',
+      'Lower arms out to the sides in an arc',
+      'Feel a stretch in your chest',
+      'Bring arms back together above chest',
+      'Maintain the slight elbow bend throughout'
+    ],
+    tips: [
+      'Keep the bend consistent - don\'t straighten arms',
+      'Control the movement',
+      'Can be done on incline or decline too'
+    ],
+    difficulty: 'Beginner'
+  },
+  'preacher curl': {
+    name: 'Preacher Curl',
+    muscle: 'Biceps',
+    steps: [
+      'Sit at a preacher curl bench',
+      'Rest your arms on the pad with arms extended',
+      'Grip the bar or dumbbells',
+      'Curl the weight up toward your shoulders',
+      'Squeeze biceps at the top',
+      'Lower slowly back to full extension'
+    ],
+    tips: [
+      'Don\'t let your upper arms rise off the pad',
+      'Full range of motion is key',
+      'Great for isolating biceps'
+    ],
+    difficulty: 'Beginner'
+  },
+  'hack squat': {
+    name: 'Hack Squat',
+    muscle: 'Quadriceps, Glutes',
+    steps: [
+      'Stand in the hack squat machine with shoulders under pads',
+      'Place feet shoulder-width on the platform',
+      'Release the safety handles',
+      'Lower your body by bending knees',
+      'Keep your back pressed against the pad',
+      'Push through your heels to stand up'
+    ],
+    tips: [
+      'Keep your back against the pad',
+      'Don\'t let knees cave inward',
+      'Go to depth for full leg activation'
+    ],
+    difficulty: 'Intermediate'
+  },
+  't-bar row': {
+    name: 'T-Bar Row',
+    muscle: 'Back, Lats',
+    steps: [
+      'Straddle the T-bar with feet shoulder-width apart',
+      'Bend at hips with flat back',
+      'Grip the handle with both hands',
+      'Pull the weight up to your chest',
+      'Squeeze shoulder blades together',
+      'Lower with control'
+    ],
+    tips: [
+      'Keep back flat, not rounded',
+      'Pull with your elbows, not hands',
+      'Can use one arm at a time for variation'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'seated cable row': {
+    name: 'Seated Cable Row',
+    muscle: 'Back, Biceps',
+    steps: [
+      'Sit at a cable row machine with feet on the platform',
+      'Grip the handle with arms extended',
+      'Keep back straight, slight bend in knees',
+      'Pull handle to your abdomen',
+      'Squeeze your shoulder blades together',
+      'Extend arms back with control'
+    ],
+    tips: [
+      'Keep your torso stationary',
+      'Pull with your back, not arms',
+      'Full stretch at the start of each rep'
+    ],
+    difficulty: 'Beginner'
+  },
+  'rear delt flye': {
+    name: 'Rear Delt Flye',
+    muscle: 'Rear Deltoids',
+    steps: [
+      'Bend forward at hips, holding dumbbells',
+      'Let arms hang down with palms facing each other',
+      'Raise arms out to the sides',
+      'Keep a slight bend in elbows',
+      'Squeeze shoulder blades at the top',
+      'Lower slowly back to starting position'
+    ],
+    tips: [
+      'Use light weight - rear delts are small',
+      'Focus on the squeeze',
+      'Great for shoulder balance'
+    ],
+    difficulty: 'Beginner'
+  },
+  'cable woodchop': {
+    name: 'Cable Woodchop',
+    muscle: 'Obliques, Core',
+    steps: [
+      'Stand sideways to a cable machine',
+      'Hold the handle with both hands',
+      'Pull the cable diagonally across your body',
+      'Pivot your back foot and rotate your torso',
+      'Bring hands down to opposite hip',
+      'Return to starting position with control'
+    ],
+    tips: [
+      'Use your core, not just arms',
+      'Keep arms relatively straight',
+      'Great for rotational strength'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'leg extension': {
+    name: 'Leg Extension',
+    muscle: 'Quadriceps',
+    steps: [
+      'Sit in the leg extension machine',
+      'Position the pad just above your ankles',
+      'Extend your legs until straight',
+      'Squeeze your quads at the top',
+      'Lower slowly back to starting position',
+      'Keep your back against the pad'
+    ],
+    tips: [
+      'Don\'t lock knees at the top',
+      'Control the descent',
+      'Can do single leg for more challenge'
+    ],
+    difficulty: 'Beginner'
+  },
+  'leg raise': {
+    name: 'Leg Raise',
+    muscle: 'Lower Abs, Hip Flexors',
+    steps: [
+      'Lie flat on your back with legs extended',
+      'Place hands under your lower back for support',
+      'Lift legs up toward the ceiling',
+      'Raise until legs are perpendicular to floor',
+      'Lower slowly back down',
+      'Keep legs straight throughout'
+    ],
+    tips: [
+      'Keep lower back pressed to the floor',
+      'Bend knees slightly if too hard',
+      'For more challenge, add a hold at the top'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'hanging leg raise': {
+    name: 'Hanging Leg Raise',
+    muscle: 'Lower Abs, Hip Flexors',
+    steps: [
+      'Hang from a pull-up bar with arms straight',
+      'Engage your core',
+      'Lift legs up until parallel to floor',
+      'For more challenge, raise knees to chest',
+      'Lower slowly back down',
+      'Avoid swinging or using momentum'
+    ],
+    tips: [
+      'Start with bent knees if straight legs are hard',
+      'Control the movement',
+      'Great for grip strength too'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'dead bug': {
+    name: 'Dead Bug',
+    muscle: 'Core, Stability',
+    steps: [
+      'Lie on your back with arms extended up',
+      'Lift legs with knees at 90 degrees, thighs vertical',
+      'Lower one arm and opposite leg toward floor',
+      'Keep lower back pressed to the ground',
+      'Return to starting position',
+      'Alternate sides with control'
+    ],
+    tips: [
+      'Keep your lower back flat on the ground',
+      'Move slowly and with control',
+      'Great for core stability and lower back health'
+    ],
+    difficulty: 'Beginner'
+  },
+  'clamshell': {
+    name: 'Clamshell',
+    muscle: 'Glutes, Hip Abductors',
+    steps: [
+      'Lie on your side with knees bent at 90 degrees',
+      'Keep feet together',
+      'Open top knee away from bottom knee',
+      'Rotate at the hip, not by rolling',
+      'Squeeze at the top',
+      'Lower slowly back to starting position'
+    ],
+    tips: [
+      'Don\'t roll your hips back',
+      'Keep feet together throughout',
+      'Great for hip strength and injury prevention'
+    ],
+    difficulty: 'Beginner'
+  },
+  'goblet squat': {
+    name: 'Goblet Squat',
+    muscle: 'Quadriceps, Glutes',
+    steps: [
+      'Hold a dumbbell or kettlebell at chest level',
+      'Stand with feet shoulder-width apart',
+      'Squat down, keeping the weight at your chest',
+      'Go down until elbows touch knees',
+      'Keep your chest up throughout',
+      'Drive through heels to stand back up'
+    ],
+    tips: [
+      'The weight helps counterbalance',
+      'Keep elbows inside your knees',
+      'Great for learning squat form'
+    ],
+    difficulty: 'Beginner'
+  },
+  'arnold press': {
+    name: 'Arnold Press',
+    muscle: 'Shoulders',
+    steps: [
+      'Sit with dumbbells at shoulder height, palms facing you',
+      'Rotate wrists so palms face forward',
+      'Press dumbbells overhead as you rotate',
+      'Finish with arms extended, palms facing forward',
+      'Reverse the motion to return to start',
+      'Keep core engaged throughout'
+    ],
+    tips: [
+      'The rotation adds extra shoulder work',
+      'Start with lighter weight to master form',
+      'Keep the motion smooth'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'cable flye': {
+    name: 'Cable Flye',
+    muscle: 'Chest',
+    steps: [
+      'Set cables at chest height on both sides',
+      'Stand in the center with feet staggered',
+      'Grip handles with arms extended out to sides',
+      'Bring hands together in front of chest',
+      'Squeeze chest at the center',
+      'Return to starting position with control'
+    ],
+    tips: [
+      'Keep a slight bend in elbows',
+      'Full range of motion is key',
+      'Constant tension unlike dumbbell flyes'
+    ],
+    difficulty: 'Beginner'
+  },
+  'walking lunge': {
+    name: 'Walking Lunge',
+    muscle: 'Quadriceps, Glutes, Balance',
+    steps: [
+      'Stand tall with feet hip-width apart',
+      'Step forward with one leg',
+      'Lower until both knees are at 90 degrees',
+      'Push through front heel to bring back leg forward',
+      'Continue forward, alternating legs',
+      'Maintain upright torso throughout'
+    ],
+    tips: [
+      'Take big enough steps',
+      'Keep front knee over ankle',
+      'Adds balance challenge to regular lunges'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'jump squat': {
+    name: 'Jump Squat',
+    muscle: 'Quadriceps, Glutes, Power',
+    steps: [
+      'Stand with feet shoulder-width apart',
+      'Perform a regular squat to 90 degrees',
+      'Explosively jump up from the bottom',
+      'Extend arms overhead during the jump',
+      'Land softly on the balls of your feet',
+      'Immediately go into the next squat'
+    ],
+    tips: [
+      'Land softly to protect knees',
+      'Start with regular squats if new to plyometrics',
+      'Keep core engaged'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'wide grip pull-up': {
+    name: 'Wide Grip Pull-Up',
+    muscle: 'Lats, Upper Back',
+    steps: [
+      'Hang from a bar with hands wider than shoulders',
+      'Start from a dead hang',
+      'Pull yourself up until chin is over the bar',
+      'Focus on pulling elbows down and back',
+      'Lower slowly back to dead hang',
+      'Keep body straight, no swinging'
+    ],
+    tips: [
+      'Wider grip emphasizes lats more',
+      'Warm up shoulders first',
+      'Can use assisted pull-up machine'
+    ],
+    difficulty: 'Advanced'
+  },
+  'seated leg curl': {
+    name: 'Seated Leg Curl',
+    muscle: 'Hamstrings',
+    steps: [
+      'Sit in the seated leg curl machine',
+      'Position the pad just above your feet',
+      'Curl your heels toward your glutes',
+      'Squeeze hamstrings at the top',
+      'Lower slowly back to starting position',
+      'Keep back pressed against the seat'
+    ],
+    tips: [
+      'Keep your hips square',
+      'Control the negative portion',
+      'Less stress on lower back than lying version'
+    ],
+    difficulty: 'Beginner'
+  },
+  'diamond push-up': {
+    name: 'Diamond Push-Up',
+    muscle: 'Triceps, Chest',
+    steps: [
+      'Start in push-up position',
+      'Bring hands together under your chest',
+      'Form a diamond shape with thumbs and index fingers',
+      'Lower chest to your hands',
+      'Push back up to starting position',
+      'Keep core tight and body straight'
+    ],
+    tips: [
+      'Targets triceps more than regular push-ups',
+      'Modify on knees if needed',
+      'Keep elbows close to body'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'superman hold': {
+    name: 'Superman Hold',
+    muscle: 'Lower Back, Glutes',
+    steps: [
+      'Lie face down with arms extended forward',
+      'Simultaneously lift arms, chest, and legs',
+      'Hold at the top, squeezing glutes and back',
+      'Reach arms toward your feet',
+      'Keep neck neutral',
+      'Hold for 2-3 seconds at the top'
+    ],
+    tips: [
+      'Don\'t overextend your back',
+      'Breathe normally while holding',
+      'Great for lower back health'
+    ],
+    difficulty: 'Beginner'
+  },
+  'arm circle': {
+    name: 'Arm Circle',
+    muscle: 'Shoulders (Warm-up)',
+    steps: [
+      'Stand with arms extended to the sides at shoulder height',
+      'Make small circles with your arms',
+      'Gradually increase circle size',
+      'After 10-15 reps, reverse direction',
+      'Keep core engaged',
+      'Maintain steady breathing'
+    ],
+    tips: [
+      'Great for shoulder warm-up',
+      'Don\'t make circles too big at first',
+      'Do both forward and backward'
+    ],
+    difficulty: 'Beginner'
+  },
+  'foam rolling': {
+    name: 'Foam Rolling (Recovery)',
+    muscle: 'Myofascial Release',
+    steps: [
+      'Position the foam roller under the target muscle',
+      'Slowly roll along the muscle',
+      'Pause on tender points for 20-30 seconds',
+      'Apply gentle pressure to release tension',
+      'Avoid rolling directly on joints or bones',
+      'Breathe deeply and relax into the pressure'
+    ],
+    tips: [
+      'Never roll on injured areas',
+      'Stop if you feel sharp pain',
+      'Focus on IT band, quads, back, and calves'
+    ],
+    difficulty: 'Beginner'
+  },
+  'stretching': {
+    name: 'Stretching',
+    muscle: 'Flexibility',
+    steps: [
+      'Hold each stretch for 20-30 seconds',
+      'Never bounce while stretching',
+      'Stretch to the point of tension, not pain',
+      'Breathe deeply and relax into each stretch',
+      'Focus on major muscle groups',
+      'Stretch both sides equally'
+    ],
+    tips: [
+      'Never stretch cold muscles',
+      'Dynamic stretching before workout',
+      'Static stretching after workout'
+    ],
+    difficulty: 'Beginner'
+  },
+  'light walking': {
+    name: 'Light Walking',
+    muscle: 'Cardio, Active Recovery',
+    steps: [
+      'Walk at a comfortable pace',
+      'Keep your head up and shoulders relaxed',
+      'Swing arms naturally',
+      'Maintain a steady rhythm',
+      'Walk for 20-30 minutes',
+      'Cool down with slower pace at end'
+    ],
+    tips: [
+      'Great for rest days',
+      'Aids recovery and blood flow',
+      'Keep pace easy enough to talk'
+    ],
+    difficulty: 'Beginner'
+  },
+  'gentle yoga': {
+    name: 'Gentle Yoga',
+    muscle: 'Flexibility, Mindfulness',
+    steps: [
+      'Find a quiet space with room to move',
+      'Start with basic poses (Downward Dog, Child\'s Pose)',
+      'Move slowly through each pose',
+      'Focus on breath and body awareness',
+      'Hold poses for 30-60 seconds',
+      'End with relaxation poses'
+    ],
+    tips: [
+      'Don\'t force any position',
+      'Listen to your body',
+      'Great for recovery and flexibility'
+    ],
+    difficulty: 'Beginner'
+  },
+  'jump rope': {
+    name: 'Jump Rope',
+    muscle: 'Cardio, Calves, Coordination',
+    steps: [
+      'Hold rope handles in each hand',
+      'Jump with both feet slightly apart',
+      'Turn rope with wrists, not arms',
+      'Keep jumps low, just clearing the rope',
+      'Land softly on the balls of your feet',
+      'Start slow, increase speed as you improve'
+    ],
+    tips: [
+      'Focus on quick wrist movements',
+      'Keep elbows close to body',
+      'Great for cardio and coordination'
+    ],
+    difficulty: 'Beginner'
+  },
+  'light jogging': {
+    name: 'Light Jogging',
+    muscle: 'Cardio, Legs',
+    steps: [
+      'Start with a brisk walk',
+      'Gradually increase to a comfortable jogging pace',
+      'Keep posture upright with slight forward lean',
+      'Land mid-foot, not on your heels',
+      'Swing arms naturally',
+      'Keep a pace where you can still talk'
+    ],
+    tips: [
+      'Warm up with walking first',
+      'Keep core engaged',
+      'Breathe rhythmically'
+    ],
+    difficulty: 'Beginner'
+  },
+  'sprint in place': {
+    name: 'Sprint in Place',
+    muscle: 'Cardio, Leg Power',
+    steps: [
+      'Stand tall with feet hip-width apart',
+      'Drive knees up high, alternating quickly',
+      'Pump arms in sync with legs',
+      'Move at maximum effort',
+      'Rest during the rest periods',
+      'Maintain good posture throughout'
+    ],
+    tips: [
+      'Go all out during work periods',
+      'Keep core tight',
+      'Great for HIIT workouts'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'squat to press': {
+    name: 'Squat to Press',
+    muscle: 'Full Body',
+    steps: [
+      'Stand holding dumbbells at shoulders',
+      'Perform a squat',
+      'As you stand up, press dumbbells overhead',
+      'Finish with arms extended overhead',
+      'Lower dumbbells back to shoulders',
+      'Repeat with control'
+    ],
+    tips: [
+      'Combines lower and upper body work',
+      'Full body movement - great for efficiency',
+      'Keep core engaged throughout'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'plank shoulder tap': {
+    name: 'Plank Shoulder Tap',
+    muscle: 'Core, Shoulders',
+    steps: [
+      'Start in a plank position',
+      'Keep hips stable while lifting one hand',
+      'Tap opposite shoulder',
+      'Return hand to floor',
+      'Repeat with other hand',
+      'Keep hips from rotating'
+    ],
+    tips: [
+      'Keep core tight to prevent hip rotation',
+      'Go slower for more challenge',
+      'Great for core stability'
+    ],
+    difficulty: 'Intermediate'
+  },
+  'tricep kickback': {
+    name: 'Tricep Kickback',
+    muscle: 'Triceps',
+    steps: [
+      'Bend forward at hips holding dumbbell',
+      'Keep upper arm parallel to floor',
+      'Extend arm straight back',
+      'Squeeze triceps at the top',
+      'Lower back to starting position',
+      'Keep elbow stationary throughout'
+    ],
+    tips: [
+      'Focus on the tricep, not the back',
+      'Can do one arm at a time',
+      'Keep core engaged'
+    ],
+    difficulty: 'Beginner'
+  },
+  'bent over row': {
+    name: 'Bent Over Row',
+    muscle: 'Back, Biceps',
+    steps: [
+      'Hold dumbbells in front of you',
+      'Bend at hips, keeping back flat',
+      'Let arms hang straight down',
+      'Pull dumbbells to your sides',
+      'Squeeze shoulder blades together',
+      'Lower with control'
+    ],
+    tips: [
+      'Keep back straight, not rounded',
+      'Pull with elbows, not hands',
+      'Can do alternating or together'
+    ],
+    difficulty: 'Beginner'
+  },
+  'leg lift': {
+    name: 'Leg Lift',
+    muscle: 'Lower Abs, Hip Flexors',
+    steps: [
+      'Lie on your back with legs extended',
+      'Place hands under your glutes for support',
+      'Lift legs to 90 degrees',
+      'Lower slowly back down',
+      'Keep lower back pressed to floor',
+      'Full range of motion'
+    ],
+    tips: [
+      'Keep legs straight',
+      'Don\'t let lower back arch',
+      'For more challenge, hold at top'
+    ],
+    difficulty: 'Beginner'
+  },
+  'brisk walk': {
+    name: 'Brisk Walk/Jog',
+    muscle: 'Cardio',
+    steps: [
+      'Start at a comfortable walking pace',
+      'Gradually increase to brisk walking or light jog',
+      'Maintain steady breathing',
+      'Keep good posture',
+      'Swing arms naturally',
+      'Cool down with slower pace'
+    ],
+    tips: [
+      'Keep a pace where you can still hold a conversation',
+      'Great for steady state cardio',
+      'Good for active recovery days'
+    ],
+    difficulty: 'Beginner'
+  },
+  'push-up to renegade row': {
+    name: 'Push-Up to Renegade Row',
+    muscle: 'Chest, Back, Core',
+    steps: [
+      'Start in push-up position with dumbbells',
+      'Perform a push-up while holding dumbbells',
+      'Row one dumbbell to your hip',
+      'Lower it back down',
+      'Repeat on other side',
+      'Alternate sides'
+    ],
+    tips: [
+      'Keep core tight throughout',
+      'Great compound movement',
+      'Start without dumbbells if needed'
+    ],
+    difficulty: 'Advanced'
+  },
+  'rest': {
+    name: 'Rest',
+    muscle: 'Recovery',
+    steps: [
+      'Take it easy during this period',
+      'Hydrate well',
+      'Focus on breathing',
+      'Allow muscles to recover',
+      'Stay loose with light movement if needed',
+      'Prepare for next set'
+    ],
+    tips: [
+      'Active rest is better than sitting still',
+      'Hydration is key',
+      'Use this time mentally to prepare'
+    ],
+    difficulty: 'Beginner'
+  },
+};
+
 export default function WorkoutPlanner() {
   const [activeTab, setActiveTab] = useState('profile');
   const [profile, setProfile] = useState<UserProfile>({
@@ -316,6 +1559,7 @@ export default function WorkoutPlanner() {
   const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [showAnalyzeModal, setShowAnalyzeModal] = useState(false);
   const [showWorkouts, setShowWorkouts] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -607,12 +1851,23 @@ export default function WorkoutPlanner() {
                     <div className="workout-day">{workout.day}</div>
                     <div className="workout-title">{workout.title}</div>
                     <ul className="workout-exercises">
-                      {workout.exercises.map((ex, j) => (
-                        <li key={j} className="workout-exercise">
-                          <span className="exercise-name">{ex.name}</span>
-                          <span className="exercise-sets">{ex.sets}</span>
-                        </li>
-                      ))}
+                      {workout.exercises.map((ex, j) => {
+                        const exerciseKey = ex.name.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+                        const hasGuide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]];
+                        return (
+                          <li 
+                            key={j} 
+                            className={`workout-exercise ${hasGuide ? 'clickable' : ''}`}
+                            onClick={() => {
+                              const guide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]] || Object.values(EXERCISE_GUIDE).find(g => exerciseKey.includes(g.name.toLowerCase().split(' ')[0]));
+                              if (guide) setSelectedExercise(guide.name);
+                            }}
+                          >
+                            <span className="exercise-name">{ex.name}</span>
+                            <span className="exercise-sets">{ex.sets}</span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 ))}
@@ -759,6 +2014,59 @@ export default function WorkoutPlanner() {
           </div>
         </div>
       )}
+
+      {selectedExercise && (() => {
+        const guide = Object.values(EXERCISE_GUIDE).find(g => g.name === selectedExercise);
+        if (!guide) return null;
+        return (
+          <div className="analyze-modal" onClick={() => setSelectedExercise(null)}>
+            <div className="analyze-content" style={{ maxWidth: '90%', maxHeight: '85vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{guide.name}</h3>
+                <button 
+                  onClick={() => setSelectedExercise(null)}
+                  style={{ 
+                    background: 'var(--bg-card)', 
+                    border: 'none', 
+                    color: 'white', 
+                    width: 32, 
+                    height: 32, 
+                    borderRadius: '50%', 
+                    cursor: 'pointer',
+                    fontSize: 18
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                <span style={{ background: 'var(--accent)', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
+                  {guide.difficulty}
+                </span>
+                <span style={{ background: 'var(--success)', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
+                  {guide.muscle}
+                </span>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <h4 style={{ fontSize: 16, marginBottom: 12, color: 'var(--accent)' }}>How to perform:</h4>
+                <ol style={{ paddingLeft: 20, margin: 0 }}>
+                  {guide.steps.map((step, i) => (
+                    <li key={i} style={{ marginBottom: 10, fontSize: 14, lineHeight: 1.5 }}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+              <div style={{ background: 'var(--bg-card)', padding: 16, borderRadius: 12 }}>
+                <h4 style={{ fontSize: 16, marginBottom: 10, color: 'var(--warning)' }}>💡 Tips:</h4>
+                <ul style={{ paddingLeft: 20, margin: 0 }}>
+                  {guide.tips.map((tip, i) => (
+                    <li key={i} style={{ marginBottom: 8, fontSize: 13, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
