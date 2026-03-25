@@ -2953,116 +2953,13 @@ export default function WorkoutPlanner() {
       )}
 
       {showAuthModal && (() => { console.log('Modal rendering, showAuthModal:', showAuthModal); return (
-        <div className="analyze-modal" onClick={() => setShowAuthModal(false)}>
-          <div className="analyze-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-                {authMode === 'signup' ? 'Create Account' : 'Welcome Back'}
-              </h3>
-              <button 
-                onClick={() => setShowAuthModal(false)}
-                style={{ 
-                  background: 'var(--bg-card)', 
-                  border: 'none', 
-                  color: 'white', 
-                  width: 32, 
-                  height: 32, 
-                  borderRadius: '50%', 
-                  cursor: 'pointer',
-                  fontSize: 18
-                }}
-              >
-                ×
-              </button>
-            </div>
-            
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>
-              {authMode === 'signup' 
-                ? 'Create an account to sync your data across devices'
-                : 'Sign in to access your workout data'}
-            </p>
-
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Email</label>
-              <input
-                type="email"
-                value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
-                placeholder="you@example.com"
-                style={{
-                  width: '100%',
-                  padding: 12,
-                  background: 'var(--bg-card)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 12,
-                  color: 'white',
-                  fontSize: 14
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Password</label>
-              <input
-                type="password"
-                value={authPassword}
-                onChange={(e) => setAuthPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                style={{
-                  width: '100%',
-                  padding: 12,
-                  background: 'var(--bg-card)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 12,
-                  color: 'white',
-                  fontSize: 14
-                }}
-              />
-            </div>
-
-            {authError && (
-              <div style={{ 
-                background: 'rgba(239, 68, 68, 0.2)', 
-                padding: 12, 
-                borderRadius: 8, 
-                marginBottom: 16,
-                fontSize: 13,
-                color: '#ef4444'
-              }}>
-                {authError}
-              </div>
-            )}
-
-            <button
-              onClick={authMode === 'signup' ? handleSignUp : handleSignIn}
-              style={{
-                width: '100%',
-                padding: 14,
-                background: 'linear-gradient(135deg, var(--accent), var(--pink))',
-                border: 'none',
-                borderRadius: 12,
-                color: 'white',
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: 'pointer',
-                marginBottom: 12
-              }}
-            >
-              {authMode === 'signup' ? 'Create Account' : 'Sign In'}
-            </button>
-
-            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
-              {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
-              <span 
-                onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}
-                style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}
-              >
-                {authMode === 'signup' ? 'Sign In' : 'Sign Up'}
-              </span>
-            </p>
+        <div style={{ position: 'fixed', inset: 0, background: 'red', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'white', color: 'black', padding: 40, borderRadius: 20 }}>
+            <h2>MODAL TEST</h2>
+            <button onClick={() => setShowAuthModal(false)}>Close</button>
           </div>
         </div>
-        );})()}
+      );})()}
         </>
       )}
     </div>
