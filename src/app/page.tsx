@@ -63,12 +63,13 @@ interface ProgressPhoto {
 }
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDemo_ReplaceWithYourOwn",
-  authDomain: "fitai-workout.firebaseapp.com",
-  projectId: "fitai-workout",
-  storageBucket: "fitai-workout.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000000000"
+  apiKey: "AIzaSyDGFmqFLMiIypfHVsyiIlvPC_FXDhRayhY",
+  authDomain: "workout-planner-b74e7.firebaseapp.com",
+  projectId: "workout-planner-b74e7",
+  storageBucket: "workout-planner-b74e7.firebasestorage.app",
+  messagingSenderId: "266499388365",
+  appId: "1:266499388365:web:cc42dc8a071dbad516ca84",
+  measurementId: "G-RQ037ELNPQ"
 };
 
 const app = initializeApp(firebaseConfig);
