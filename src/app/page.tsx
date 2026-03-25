@@ -1589,6 +1589,19 @@ const EXERCISE_GUIDE: Record<string, { name: string; muscle: string; steps: stri
   },
 };
 
+function TestModal({ show, onClose }: { show: boolean; onClose: () => void }) {
+  console.log('TestModal rendering, show:', show);
+  if (!show) return null;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'red', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: 'white', color: 'black', padding: 40, borderRadius: 20 }}>
+        <h2>MODAL TEST</h2>
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+}
+
 export default function WorkoutPlanner() {
   const [activeTab, setActiveTab] = useState('profile');
   const [profile, setProfile] = useState<UserProfile>({
@@ -2952,14 +2965,7 @@ export default function WorkoutPlanner() {
         </div>
       )}
 
-      {showAuthModal && (() => { console.log('Modal rendering, showAuthModal:', showAuthModal); return (
-        <div style={{ position: 'fixed', inset: 0, background: 'red', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', color: 'black', padding: 40, borderRadius: 20 }}>
-            <h2>MODAL TEST</h2>
-            <button onClick={() => setShowAuthModal(false)}>Close</button>
-          </div>
-        </div>
-      );})()}
+      <TestModal show={showAuthModal} onClose={() => setShowAuthModal(false)} />
         </>
       )}
     </div>
