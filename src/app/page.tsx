@@ -1629,6 +1629,10 @@ export default function WorkoutPlanner() {
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
+  useEffect(() => {
+    console.log('showAuthModal changed to:', showAuthModal);
+  }, [showAuthModal]);
+
   const handleSignUp = async () => {
     try {
       setAuthError('');
