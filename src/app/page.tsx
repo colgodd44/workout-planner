@@ -2050,31 +2050,30 @@ export default function WorkoutPlanner() {
                           return (
                             <li 
                               key={j} 
-                              style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 12 }}
+                              className="workout-exercise"
+                              style={{ flexDirection: 'column', alignItems: 'flex-start', gap: activeDay === i ? 12 : 0 }}
                             >
                               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                   <span className="exercise-name">{ex.name}</span>
-                                  {hasGuide && (
-                                    <button
-                                      onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        const guide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]] || Object.values(EXERCISE_GUIDE).find(g => exerciseKey.includes(g.name.toLowerCase().split(' ')[0]));
-                                        if (guide) setSelectedExercise(guide.name);
-                                      }}
-                                      style={{
-                                        background: 'var(--bg-secondary)',
-                                        border: 'none',
-                                        borderRadius: 6,
-                                        padding: '4px 8px',
-                                        fontSize: 12,
-                                        color: 'var(--text-muted)',
-                                        cursor: 'pointer'
-                                      }}
-                                    >
-                                      ℹ️
-                                    </button>
-                                  )}
+                                  <button
+                                    onClick={(e) => { 
+                                      e.stopPropagation(); 
+                                      const guide = EXERCISE_GUIDE[exerciseKey] || EXERCISE_GUIDE[exerciseKey.split(' ')[0]] || EXERCISE_GUIDE[exerciseKey.split(' ').slice(-1)[0]] || Object.values(EXERCISE_GUIDE).find(g => exerciseKey.includes(g.name.toLowerCase().split(' ')[0]));
+                                      if (guide) setSelectedExercise(guide.name);
+                                    }}
+                                    style={{
+                                      background: 'var(--bg-secondary)',
+                                      border: 'none',
+                                      borderRadius: 6,
+                                      padding: '4px 8px',
+                                      fontSize: 12,
+                                      color: 'var(--text-muted)',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    ℹ️
+                                  </button>
                                 </div>
                                 <span className="exercise-sets">{ex.sets}</span>
                               </div>
