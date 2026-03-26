@@ -2497,6 +2497,8 @@ export default function WorkoutPlanner() {
                                 <div 
                                   style={{ width: '100%', background: 'var(--bg-secondary)', borderRadius: 12, padding: 12 }}
                                   onClick={(e) => e.stopPropagation()}
+                                  onPointerDown={(e) => e.stopPropagation()}
+                                  onTouchStart={(e) => e.stopPropagation()}
                                 >
                                   <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
                                     Set {numSets > 1 ? `1-${numSets}` : '1'} - Enter weight/reps
@@ -2520,6 +2522,7 @@ export default function WorkoutPlanner() {
                                           onChange={(e) => updateExerciseSet(ex.name, setIdx, 'weight', e.target.value)}
                                           onClick={(e) => e.stopPropagation()}
                                           onPointerDown={(e) => e.stopPropagation()}
+                                          onTouchStart={(e) => e.stopPropagation()}
                                           style={{ 
                                             width: 50, 
                                             background: 'transparent', 
@@ -2542,6 +2545,7 @@ export default function WorkoutPlanner() {
                                           onChange={(e) => updateExerciseSet(ex.name, setIdx, 'reps', e.target.value)}
                                           onClick={(e) => e.stopPropagation()}
                                           onPointerDown={(e) => e.stopPropagation()}
+                                          onTouchStart={(e) => e.stopPropagation()}
                                           style={{ 
                                             width: 40, 
                                             background: 'transparent', 
