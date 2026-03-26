@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDGFmqFLMiIypfHVsyiIlvPC_FXDhRayhY",
@@ -1611,6 +1612,13 @@ export default function WorkoutPlanner() {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [activeDay, setActiveDay] = useState<number | null>(null);
   const [workoutStartTime, setWorkoutStartTime] = useState<number | null>(null);
+  const [restTimerRunning, setRestTimerRunning] = useState(false);
+  const [restTimerSeconds, setRestTimerSeconds] = useState(90);
+  const [restTimerDefault, setRestTimerDefault] = useState(90);
+  const restTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [voiceInput, setVoiceInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [progressPhotos, setProgressPhotos] = useState<ProgressPhoto[]>([]);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<ProgressPhoto | null>(null);
@@ -1744,6 +1752,98 @@ export default function WorkoutPlanner() {
     };
   }, [timerRunning]);
 
+  useEffect(() => {
+    if (restTimerRunning) {
+      restTimerRef.current = setInterval(() => {
+        setRestTimerSeconds(prev => {
+          if (prev <= 1) {
+            setRestTimerRunning(false);
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+              new Notification('Rest complete!', { body: 'Time for your next set!' });
+            }
+            return restTimerDefault;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (restTimerRef.current) {
+      clearInterval(restTimerRef.current);
+    }
+    return () => {
+      if (restTimerRef.current) clearInterval(restTimerRef.current);
+    };
+  }, [restTimerRunning, restTimerDefault]);
+
+  const startRestTimer = (seconds?: number) => {
+    if (seconds) {
+      setRestTimerDefault(seconds);
+      setRestTimerSeconds(seconds);
+    } else {
+      setRestTimerSeconds(restTimerDefault);
+    }
+    setRestTimerRunning(true);
+  };
+
+  const stopRestTimer = () => {
+    setRestTimerRunning(false);
+    setRestTimerSeconds(restTimerDefault);
+  };
+
+  const startVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input not supported in this browser');
+      return;
+    }
+    
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript.toLowerCase();
+      setVoiceInput(transcript);
+      setIsListening(false);
+      processVoiceCommand(transcript);
+    };
+    
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    
+    recognition.start();
+  };
+
+  const processVoiceCommand = (text: string) => {
+    const patterns = [
+      { regex: /(\d+)\s*(?:sets?|x)\s*(\d+)\s*(?:reps?)?\s*(?:of\s+)?(.+)/i, sets: 1, reps: 2, name: 3 },
+      { regex: /(\d+)\s*(?:reps?)\s*(?:of\s+)?(.+)/i, sets: 1, reps: 1, name: 2 },
+      { regex: /(.+)\s*(\d+)\s*(?:x|by)\s*(\d+)/i, sets: 3, reps: 2, name: 1 },
+    ];
+    
+    for (const pattern of patterns) {
+      const match = text.match(pattern.regex);
+      if (match) {
+        const sets = parseInt(match[pattern.sets]) || 1;
+        const reps = parseInt(match[pattern.reps]) || 10;
+        const exerciseName = match[pattern.name].trim();
+        console.log(`Voice command: ${sets} sets of ${reps} reps of ${exerciseName}`);
+        alert(`Voice input processed!\n${sets} sets × ${reps} reps of ${exerciseName}`);
+        return;
+      }
+    }
+    alert(`Couldn't understand: "${text}". Try something like "3 sets of 10 squats"`);
+  };
+
   const saveProfile = (updates: Partial<UserProfile>) => {
     const newProfile = { ...profile, ...updates };
     setProfile(newProfile);
@@ -1873,6 +1973,7 @@ export default function WorkoutPlanner() {
 
   const toggleSetComplete = (exerciseName: string, setIndex: number) => {
     const today = new Date().toISOString().split('T')[0];
+    let setWasCompleted = false;
     const updatedLogs = exerciseLogs.map(log => {
       if (log.date === today && log.dayIndex === activeDay) {
         return {
@@ -1880,7 +1981,9 @@ export default function WorkoutPlanner() {
           exercises: log.exercises.map(ex => {
             if (ex.name === exerciseName) {
               const newSets = [...ex.sets];
+              const wasCompletingNow = !newSets[setIndex].completed;
               newSets[setIndex] = { ...newSets[setIndex], completed: !newSets[setIndex].completed };
+              if (wasCompletingNow) setWasCompleted = true;
               const allCompleted = newSets.every(s => s.completed);
               return { ...ex, sets: newSets, completed: allCompleted };
             }
@@ -1891,6 +1994,9 @@ export default function WorkoutPlanner() {
       return log;
     });
     saveExerciseLogs(updatedLogs);
+    if (setWasCompleted && !restTimerRunning) {
+      startRestTimer();
+    }
   };
 
   const getTodayLog = () => {
@@ -2204,6 +2310,31 @@ export default function WorkoutPlanner() {
           <div className="tab-content active">
             <h2 className="section-title">Your Workout Plan</h2>
             
+            {showWorkouts && (
+              <button
+                onClick={startVoiceInput}
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  background: isListening ? 'var(--accent)' : 'var(--bg-card)',
+                  border: `2px solid ${isListening ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}`,
+                  borderRadius: 12,
+                  color: 'white',
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  marginBottom: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  animation: isListening ? 'pulse 1s infinite' : 'none'
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{isListening ? '🎤' : '🎙️'}</span>
+                {isListening ? 'Listening...' : 'Voice Input: "3 sets of 10 squats"'}
+              </button>
+            )}
+            
             {!showWorkouts ? (
               <div className="card" style={{ textAlign: 'center', padding: 40 }}>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
@@ -2254,6 +2385,49 @@ export default function WorkoutPlanner() {
                       >
                         Finish Workout
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {restTimerRunning && (
+                  <div className="card" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', marginBottom: 20, position: 'sticky', top: 60, zIndex: 50 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 14, opacity: 0.9 }}>Rest Timer</div>
+                        <div style={{ fontSize: 48, fontWeight: 800 }}>{formatTime(restTimerSeconds)}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {[60, 90, 120, 180].map(sec => (
+                          <button
+                            key={sec}
+                            onClick={() => { setRestTimerDefault(sec); setRestTimerSeconds(sec); }}
+                            style={{
+                              background: restTimerDefault === sec ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)',
+                              border: 'none',
+                              color: 'white',
+                              padding: '8px 12px',
+                              borderRadius: 8,
+                              cursor: 'pointer',
+                              fontSize: 12
+                            }}
+                          >
+                            {sec}s
+                          </button>
+                        ))}
+                        <button 
+                          onClick={stopRestTimer}
+                          style={{ 
+                            background: 'rgba(239, 68, 68, 0.8)', 
+                            border: 'none', 
+                            color: 'white', 
+                            padding: '8px 16px', 
+                            borderRadius: 8, 
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Skip
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2383,6 +2557,18 @@ export default function WorkoutPlanner() {
                                         />
                                         <button
                                           onClick={(e) => { e.stopPropagation(); toggleSetComplete(ex.name, setIdx); }}
+                                          onTouchEnd={(e) => {
+                                            const touch = e.changedTouches[0];
+                                            const diffX = touch.clientX - (e.target as any).startX;
+                                            if (Math.abs(diffX) > 50) {
+                                              e.stopPropagation();
+                                              toggleSetComplete(ex.name, setIdx);
+                                            }
+                                          }}
+                                          onTouchStart={(e) => {
+                                            const touch = e.touches[0];
+                                            (e.target as any).startX = touch.clientX;
+                                          }}
                                           style={{ 
                                             width: 28, 
                                             height: 28, 
@@ -2555,6 +2741,59 @@ export default function WorkoutPlanner() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {exerciseLogs.length > 0 && (
+              <div className="card">
+                <h3 style={{ fontSize: 16, marginBottom: 16 }}>📈 Progress Charts</h3>
+                
+                {(() => {
+                  const chartData = exerciseLogs.slice(-14).map((log, i) => ({
+                    date: log.date.slice(5),
+                    duration: Math.round(log.duration / 60),
+                    exercises: log.exercises.filter(e => e.completed).length,
+                  }));
+                  
+                  if (chartData.length > 1) {
+                    return (
+                      <>
+                        <div style={{ marginBottom: 24 }}>
+                          <h4 style={{ fontSize: 14, marginBottom: 12, color: 'var(--text-secondary)' }}>Workout Duration (minutes)</h4>
+                          <ResponsiveContainer width="100%" height={150}>
+                            <LineChart data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                              <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                              <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                              <Tooltip 
+                                contentStyle={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: 8 }}
+                                labelStyle={{ color: 'white' }}
+                              />
+                              <Line type="monotone" dataKey="duration" stroke="#8b5cf6" strokeWidth={2} dot={{ fill: '#8b5cf6' }} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                        
+                        <div style={{ marginBottom: 24 }}>
+                          <h4 style={{ fontSize: 14, marginBottom: 12, color: 'var(--text-secondary)' }}>Exercises Completed</h4>
+                          <ResponsiveContainer width="100%" height={150}>
+                            <BarChart data={chartData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                              <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                              <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                              <Tooltip 
+                                contentStyle={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: 8 }}
+                                labelStyle={{ color: 'white' }}
+                              />
+                              <Bar dataKey="exercises" fill="#10b981" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </>
+                    );
+                  }
+                  return <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Complete more workouts to see charts!</p>;
+                })()}
               </div>
             )}
 
